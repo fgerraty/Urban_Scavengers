@@ -91,9 +91,7 @@ Folder **"raw"** containing all raw data files
     Columns
 
     -   Name - site name
-
     -   Latitude
-
     -   Longitude
 
 -   **Urban_Scavenger_Video_Scoring.csv** - dataset of all videos recorded throughout project
@@ -231,17 +229,11 @@ Folder **"processed"** containing processed data files
 -   Folder **main_figures** containing figures included in the main text of the manuscript. Minor edits have been made to some figures using Illustrator.
 
     -   Fig. 1 - map.pdf
-
     -   Fig. 2 - scavenger_panel.pdf
-
     -   Fig. 3 - scavenger_breakdown.pdf
-
     -   Fig. 4 - NMDS_plot.pdf
-
     -   Fig. 5 - urbanization_select_scavengers_glm.pdf
-
     -   Fig. 6 - ecosystem_function.pdf
-
     -   Fig. 7 - activity_plot.pdf
 
 -   Folder **supp_figures** containing tables and figures included in the supplemental information of the manuscript.
