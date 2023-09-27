@@ -22,11 +22,11 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 -   **05_Map.R** generates the map of urbanization extent and study sites (Fig. 1)
 
--   **06_NMDS.R** generates a NMDS plot showing the best-fitting ManyGLM model in ordination space (Fig. 2)
+-   **06_NMDS.R** generates a NMDS plot showing the best-fitting ManyGLM model in ordination space (Fig. 4)
 
--   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. X,Y,Z)
+-   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S1)
 
--   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs XYZ)
+-   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 7, S2)
 
 ![Outline of scripts and datasets associated with this manuscript](output/extra_figures/repository_outline.png)
 
@@ -38,7 +38,7 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 Folder **"raw"** containing all raw data files
 
--   folder **nlcd_2019_land_cover_l48_20210604** containing [NLCD 2019](https://doi.org/10.5066/P9KZCM54) Land Cover Database files (.ige, .img, .rde, .rrd, .xml) and a cheatsheet (file **NLCDclasses.pdf**) of land cover code descriptions.
+-   folder **nlcd_2019_land_cover_l48_20210604** containing [NLCD 2019](https://doi.org/10.5066/P9KZCM54) Land Cover Database files (.ige, .img, .rde, .rrd, .xml). [Here's a cheatsheet](https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description) to the land cover code descriptions. NOTE: Due to large file size, this must be downloaded independently from the website above and placed in a folder with the exact name above ("nlcd_2019_land_cover_l48_20210604") for scripts *01_UrbanizationCalculation.R* and *05_Map.R* to run.
 
 -   **Urban_Scavenger_Carcass_Deployments.csv** - outlines raw data collected for each carcass deployment
 
@@ -220,7 +220,11 @@ Folder **"processed"** containing processed data files
 
     -   buffers_plot.pdf - plot of values of urbanization extent and agricultural extent at each site.
 
-    -   locator_map.pdf, base_map.pdf - outputs from **05_Map.R** script, combined in Illustrator to make final map for publication.
+    -   base_map.pdf, locator_map.pdf- outputs from **05_Map.R** script, combined in Illustrator to make final map (Fig. 1) for publication.
+
+    -   scavenge_probability_plot.pdf, total_scavenge_probability_plot.pdf, hours_until_first_scavenge_plot.pdf, hours_until_full_scavenge_plot.pdf - outputs from **07_ModelPlots.R** script, combined in illustrator to make Fig. 6 for publication.
+
+    -   urbanization_select_scavengers_glm.pdf - output from **07_ModelPlots.R** script, modified in illustrator to make Fig. 5 for publication.
 
     -   repository_outline.png - outline of repository (figure above in **README.md** file)
 
@@ -228,14 +232,25 @@ Folder **"processed"** containing processed data files
 
     -   Fig. 1 - map.pdf
 
-    -   Fig. 2 - NMDS_plot.pdf
+    -   Fig. 2 - scavenger_panel.pdf
 
-    -   Fig. 3 - urbanization_select_scavengers_glm.pdf
+    -   Fig. 3 - scavenger_breakdown.pdf
 
-    -   Fig. 4 - activity_plot.pdf
+    -   Fig. 4 - NMDS_plot.pdf
 
--   Folder **supp_figures** containing figures included in the supplemental information of the manuscript.
+    -   Fig. 5 - urbanization_select_scavengers_glm.pdf
 
-    -   SUPPLEMENTAL FIGURES!
+    -   Fig. 6 - ecosystem_function.pdf
+
+    -   Fig. 7 - activity_plot.pdf
+
+-   Folder **supp_figures** containing tables and figures included in the supplemental information of the manuscript.
+
+    -   Table S1 - scavenger_summary_table.png
+    -   Table S2 - PERMANOVA_top_models_table.pdf
+    -   Table S3 - PERMANOVA_top_predictors_table.pdf
+    -   Table S4 -MvGLM_summary_table.pdf
+    -   Fig. S1 - urbanization_all_scavengers_glm.pdf
+    -   Fig. S2 - activity_plot_all_scavengers.pdf
 
 **Urban_Scavengers.Rproj** - R project for running scripts and directory in RStudio.
