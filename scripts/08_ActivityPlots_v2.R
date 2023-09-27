@@ -5,8 +5,10 @@
 # Script 08: Scavenger Activity Analysis Plots ###########################
 #-------------------------------------------------------------------------
 
-# PART 1: Import Cleaned Datasets ----------------------------------------
-deployments <- read_csv("data/processed/deployments.csv")
+# PART 1: Import Datasets ------------------------------------------------
+deployments <- read_csv("data/raw/Urban_Scavenger_Carcass_Deployments.csv") %>% 
+  clean_names()
+
 scav_data <- read_csv("data/processed/scavenger_recordings.csv")
 
 

@@ -197,7 +197,7 @@ combined_plot
 
 #Export high-quality figure of combined plot
 
-pdf("output/main_figures/urbanization_select_scavengers_glm.pdf", 
+pdf("output/extra_figures/urbanization_select_scavengers_glm.pdf", 
     width = 8, height = 6)
 
 plot(combined_plot)
