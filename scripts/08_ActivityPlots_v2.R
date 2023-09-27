@@ -89,7 +89,7 @@ activity_plot_all_spp
 
 #Export high-quality figure of activity plot (all species)
 
-pdf("output/supp_figures/activity_plot_all_spp.pdf", 
+pdf("output/supp_figures/activity_plot_all_scavengers.pdf", 
     width = 10, height = 8)
 
 plot(activity_plot_all_spp)
