@@ -14,7 +14,7 @@ There are five primary R scripts (turquoise in outline) required to run all cons
 
 -   **02_DataClean.R** cleans and summarizes raw data files.
 
--   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages.
+-   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages. This script also generates tables S2, S3, and S4 in the manuscript.
 
 -   **04_Univariate_Analyses.R** conducts all analyses related to the effects of urbanization on metrics of carrion scavenging ecosystem functions.
 
@@ -26,7 +26,7 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 -   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S1)
 
--   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 7, S2)
+-   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 3, 7, S2) and the scavenger summary table (Table S1).
 
 ![Outline of scripts and datasets associated with this manuscript](output/extra_figures/repository_outline.png)
 
