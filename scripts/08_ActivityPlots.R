@@ -150,7 +150,7 @@ plot(activity_plot)
 dev.off()
 
 ##########################################################################
-# PART 3: Create Scavenger Partitioning Plot (Figure 3) ##############
+# PART 3: Create Scavenger Partitioning Plot (Figure 3) ##################
 ##########################################################################
 
 # PART 3A : Data Manipulation --------------------------------------------------
@@ -259,7 +259,7 @@ scavengers_summary <- data.frame(common_name = c("American Crow",
 
 
 
-#PART 3B: Create Pie Charts (Fig 3A, 3D) ---------------------------------------
+# PART 3B: Create Pie Charts (Fig 3A, 3D) ---------------------------------------
 
 plot_df <- scavengers_summary %>% 
   dplyr::select(common_name, n_carcasses_detected, n_carcasses_removed, n_carcasses_detected_day, n_carcasses_detected_night, n_carcasses_removed_day, n_carcasses_removed_night) %>% 
@@ -302,7 +302,7 @@ detected_plot <- ggplot(plot_df, aes(x="", y=n_carcasses_detected, fill=fct_rele
 
 detected_plot
 
-#Create plot of partitioning of carcass removal activity (Fig 3B,3C,3E,3F) ----------------------
+# PART 3C: Create plot of partitioning of carcass removal activity (Fig 3B,3C,3E,3F) ----------------------
 removed_plot <- ggplot(plot_df, aes(x="", y=n_carcasses_removed, fill=fct_relevel(f))) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0) +
@@ -353,7 +353,7 @@ waffle_plot <- ggplot(plot_df2, aes(fill = common_name, values = count))+
 waffle_plot
 
 
-# Export Fig 3 Plots ------------------------------------------------------------
+# PART 3D: Export Fig 3 Plots ------------------------------------------------------------
 
 #Export high-quality figure of all plots for Figure 3, which are annotated in Illustrator
 
@@ -383,4 +383,59 @@ plot(waffle_plot)
 
 dev.off()
 
+
+
+##########################################################################
+# PART 4: Export Scavenger Summary Table (Table S1) ######################
+##########################################################################
+
+# Data Cleaning 
+
+scavengers_summary_temp <- scavengers_summary %>% 
+  dplyr::select(common_name, scientific_name, invasive, n_video_recordings, n_carcasses_detected, n_carcasses_removed, n_sites, sum_maxN)
+
+
+#convert to "gt" object for exporting publication-quality table
+scavengers_summary_gt <- gt(scavengers_summary_temp)
+
+scavengers_summary_1 <- 
+  scavengers_summary_gt |>
+  tab_header(
+    title = "Vertebrate Scavenger Species, Invasive  Abundance Measures"
+  ) |>
+  cols_label(common_name = md("**Common Name**"),
+             scientific_name = md("**Scientific Name**"),
+             invasive = md("**Considered Invasive in Region?**"),
+             n_video_recordings = md("**# Documented Scavenging Events**"),
+             n_carcasses_detected = md("**# Carcasses Scavenged**"),
+             n_carcasses_removed = md("**# Carcasses Removed**"),
+             n_sites = md("**# Sites Recorded**"),
+             sum_maxN = md("**Sum of MaxN for All Sites**")
+  ) |>
+  cols_width(common_name ~ px(100),
+             scientific_name ~ px(200),
+             invasive ~ px(100),
+             n_video_recordings ~ px(125),
+             n_carcasses_detected ~ px(100),
+             n_carcasses_removed ~ px(100),
+             n_sites ~ px(100) ,
+             sum_maxN ~ px(100)) |>
+  tab_style(
+    style = list(
+      cell_text(style = "italic")
+    ),
+    locations = cells_body(
+      columns = scientific_name
+    )
+  )
+
+
+final_summary <- rm_header(data = scavengers_summary_1)
+
+
+# Show the gt Table
+final_summary
+
+#Export high-quality table
+gtsave(final_summary, "output/supp_figures/scavenger_species_summary_table.png", vwidth = 900, vheight = 580)
 
