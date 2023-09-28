@@ -5,7 +5,10 @@
 # Script 08: Scavenger Activity Analysis and Partitioning Plots ##########
 #-------------------------------------------------------------------------
 
-# PART 1: Import Datasets ------------------------------------------------
+####################################
+# PART 1: Import Data ##############
+####################################
+
 deployments <- read_csv("data/raw/Urban_Scavenger_Carcass_Deployments.csv") %>% 
   clean_names()
 
@@ -14,7 +17,11 @@ scav_data <- scav_data <- read_csv("data/processed/scavenger_recordings.csv",
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") 
 
-# PART 2: Data Manipulation and Activity Plots (Figs 7, S2) -------------------
+##########################################################################
+# PART 2: Data Manipulation and Activity Plots (Figs 7, S2) ##############
+##########################################################################
+
+# PART 2A: Data Manipulation ---------------------------------------------------
 
 #Create "activity df" to determine frequency captured scavenging events for each species during each 1-hour time period of the 24-hour day (i.e. 2-3AM) across all sites, deployments, and carcasses.
 activity_df <- scav_data %>%
@@ -44,7 +51,7 @@ activity_df <- rbind(temp_df, activity_df)%>% #combine dataframes
   distinct() #remove duplicates
 
 
-# PART 2: Plot Scavenger Activity for All Species (Figure S2) ------------------
+# PART 2B: Plot Scavenger Activity for All Species (Figure S2) ------------------
 
 #Set up polar coordinate system for plotting
 cp <- coord_polar(start=0)
@@ -99,7 +106,7 @@ plot(activity_plot_all_spp)
 dev.off()
 
 
-# PART 2: Plot Scavenger Activity for Select Species (Figure 7) ----------------
+# PART 2C: Plot Scavenger Activity for Select Species (Figure 7) ----------------
 
 #Generate color palette
 scavenger_palette <-c("american_crow" = "#fc8d62", "common_raven" = "#66c2a5","deer_mouse" = "#8da0cb",  "coyote" = "#e78ac3")
@@ -142,8 +149,11 @@ plot(activity_plot)
 
 dev.off()
 
+##########################################################################
+# PART 3: Create Scavenger Partitioning Plot (Figure 3) ##############
+##########################################################################
 
-# PART 3: Create Scavenger Partitioning Plot (Figure 3) -----------------------
+# PART 3A : Data Manipulation --------------------------------------------------
 
 #Modify scav_data dataframe to get AM/PM type
 scav_data <- right_join(scav_data, carcass_level_summary[,c("carcass_id", "deployment_type_AM_PM")], by = "carcass_id")
@@ -249,7 +259,7 @@ scavengers_summary <- data.frame(common_name = c("American Crow",
 
 
 
-#Pie chart
+#PART 3B: Create Pie Charts (Fig 3A, 3D) ---------------------------------------
 
 plot_df <- scavengers_summary %>% 
   dplyr::select(common_name, n_carcasses_detected, n_carcasses_removed, n_carcasses_detected_day, n_carcasses_detected_night, n_carcasses_removed_day, n_carcasses_removed_night) %>% 
@@ -292,7 +302,7 @@ detected_plot <- ggplot(plot_df, aes(x="", y=n_carcasses_detected, fill=fct_rele
 
 detected_plot
 
-#Create plot of partitioning of carcass removal activity 
+#Create plot of partitioning of carcass removal activity (Fig 3B,3C,3E,3F) ----------------------
 removed_plot <- ggplot(plot_df, aes(x="", y=n_carcasses_removed, fill=fct_relevel(f))) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0) +
@@ -342,5 +352,35 @@ waffle_plot <- ggplot(plot_df2, aes(fill = common_name, values = count))+
 
 waffle_plot
 
+
+# Export Fig 3 Plots ------------------------------------------------------------
+
+#Export high-quality figure of all plots for Figure 3, which are annotated in Illustrator
+
+pdf("output/extra_figures/detection_pie.pdf", 
+    width = 6, height = 5)
+
+plot(detected_plot)
+
+dev.off()
+
+#Export high-quality figure of plots
+
+pdf("output/extra_figures/removal_pie.pdf", 
+    width = 6, height = 5)
+
+plot(removed_plot)
+
+dev.off()
+
+
+#Export high-quality figure of plots
+
+pdf("output/extra_figures/waffle.pdf", 
+    width = 9.5, height = 4.5)
+
+plot(waffle_plot)
+
+dev.off()
 
 
