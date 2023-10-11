@@ -38,7 +38,7 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 Folder **"raw"** containing all raw data files
 
--   folder **nlcd_2019_land_cover_l48_20210604** containing [NLCD 2019](https://doi.org/10.5066/P9KZCM54) Land Cover Database files (.ige, .img, .rde, .rrd, .xml). [Here's a cheatsheet](https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description) to the land cover code descriptions. NOTE: Due to large file size, this must be downloaded independently from the website above and placed in a folder with the exact name above ("nlcd_2019_land_cover_l48_20210604") for scripts *01_UrbanizationCalculation.R* and *05_Map.R* to run.
+-   folder **nlcd_2019_land_cover_l48_20210604** containing [NLCD 2019](https://doi.org/10.5066/P9KZCM54) Land Cover Database files (.ige, .img, .rde, .rrd, .xml). [Here's a cheatsheet](https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description) to the land cover code descriptions. The files can be downloaded directly from the file download portal at this link, under the title "nlcd_2019_land_cover_l48_20210604". NOTE: Due to large file size, this must be downloaded independently from the website above and placed in a folder with the exact name above ("nlcd_2019_land_cover_l48_20210604") for scripts *01_UrbanizationCalculation.R* and *05_Map.R* to run.
 
 -   **Urban_Scavenger_Carcass_Deployments.csv** - outlines raw data collected for each carcass deployment
 
