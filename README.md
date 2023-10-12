@@ -233,8 +233,7 @@ Folder **"processed"** containing processed data files
     -   Fig. 3 - scavenger_breakdown.pdf
     -   Fig. 4 - NMDS_plot.pdf
     -   Fig. 5 - urbanization_select_scavengers_glm.pdf
-    -   Fig. 6 - ecosystem_function.pdf
-    -   Fig. 7 - activity_plot.pdf
+    -   Fig. 6 - activity_plot.pdf
 
 -   Folder **supp_figures** containing tables and figures included in the supplemental information of the manuscript.
 
@@ -243,6 +242,8 @@ Folder **"processed"** containing processed data files
     -   Table S3 - PERMANOVA_top_predictors_table.pdf
     -   Table S4 -MvGLM_summary_table.pdf
     -   Fig. S1 - urbanization_all_scavengers_glm.pdf
-    -   Fig. S2 - activity_plot_all_scavengers.pdf
+    -   Fig. S2 - ecosystem_function.pdf
+    -   Fig. S3 - activity_plot_all_scavengers.pdf
+    -   Fig. S4 - buffers_plot.pdf
 
 **Urban_Scavengers.Rproj** - R project for running scripts and directory in RStudio.
