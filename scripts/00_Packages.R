@@ -8,7 +8,7 @@
 # Part 1: Load Packages --------------------------------------------------
 
 # Load packages
-packages<- c("tidyverse", "readr", "janitor", "raster", "rasterVis", "sf", "mapview", "ggspatial", "mapsf", "car", "ggthemes", "lme4", "cowplot", "lubridate", "vegan", "scatterplot3d", "ggthemes", "ggh4x", "MASS", "AICcmodavg", "mvabund", "gt", "webshot2", "glmmTMB", "DHARMa", "wesanderson", "AICcPermanova", "maps", "emmeans", "waffle")
+packages<- c("tidyverse", "readr", "janitor", "raster", "rasterVis", "sf", "mapview", "ggspatial", "mapsf", "car", "ggthemes", "lme4", "cowplot", "lubridate", "vegan", "scatterplot3d", "ggthemes", "ggh4x", "MASS", "AICcmodavg", "mvabund", "gt", "webshot2", "glmmTMB", "DHARMa", "wesanderson", "AICcPermanova", "maps", "emmeans", "waffle", "viridis")
 
 pacman::p_load(packages, character.only = TRUE)
 
