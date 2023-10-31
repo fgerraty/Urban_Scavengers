@@ -69,7 +69,7 @@ pal <- wes_palette("Zissou1", 100, type = "continuous")
 
 # GGPlot
 plot1 <- ggplot(data=nMDS_coords, aes(x=MDS1, y=MDS2, color = percent_urbanized_1km))+
-  geom_point(size=3)+ 
+  geom_point(size=6)+ 
   scale_color_gradientn(colors = wes_palette("Zissou1", type = "continuous"), 
                         name="Percent \nUrbanized \n(1km)")+
   geom_segment(data = envirofit_coords,
