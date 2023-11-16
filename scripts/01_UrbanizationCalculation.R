@@ -207,11 +207,18 @@ write_csv(buffers, "data/processed/buffers.csv")
 plot_df <- buffer_longer %>% 
   mutate(type=if_else(class_buffer == "Developed_1km"|
                       class_buffer == "Developed_3km"|
-                      class_buffer == "Developed_5km", "Development", "Agriculture"))
+                      class_buffer == "Developed_5km", "Development", "Agriculture"),
+         scale = if_else(class_buffer == "Developed_1km"|
+                         class_buffer == "Agricultural_1km", "1km",
+                         if_else(class_buffer == "Developed_3km"|
+                                 class_buffer == "Agricultural_3km", "3km", "5km")),
+         #Reorder from upcoast to downcoast
+         site_name = factor(site_name, 
+                            levels = c("Waddell", "Scotts", "Bonny Doon", "Panther", "Laguna", "Four Mile", "Three Mile", "Strawberry", "Sand Plant", "Younger", "Natural Bridges", "Seabright 1", "Seabright 2", "Twin Lakes", "Blacks", "New Brighton", "Seacliff")))
 
 
 
-buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fill=class_buffer))+
+buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fill=scale))+
   geom_bar(stat = "identity", position = position_dodge())+
   facet_wrap(nrow=2, facets = "type")+
   labs(y = "% Land Cover Within Buffer Radius",
@@ -220,12 +227,13 @@ buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fil
   theme_few()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         strip.text = element_text(size = 12, colour = "black",face="bold"))+
-  scale_fill_discrete(labels=c('1km', '3km', '5km', "1km", "3km", "5km"))
+  scale_fill_manual(values = c("#648FFF","#DC267F", "#FFB000"))
+
 
 buffer_plot
 
 #Export as PDF
-pdf("output/extra_figures/buffers_plot.pdf", 
+pdf("output/supp_figures/buffers_plot.pdf", 
     width = 9, height = 6)
 
 plot(buffer_plot)

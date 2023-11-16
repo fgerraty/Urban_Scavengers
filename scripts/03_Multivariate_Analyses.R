@@ -87,9 +87,16 @@ top_model; top_model_2; top_model_3; top_model_4; top_model_5; top_model_6; top_
 
 # PART 1E: Make publication-quality tables for export ----------------------------
 
-#Selected models dataframe
+#Selected models table ####
 selected_models <- Selected %>% 
-  mutate(model_terms = str_replace(form, "Distance ~ ", "")) %>% 
+  #Replace characters from models for better descriptions
+  mutate(model_terms = str_replace(form, "Distance ~ ", ""),
+         model_terms = str_replace(model_terms, "percent_developed_", "Urbanization Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
+         model_terms = str_replace(model_terms, "human_visitors_per_day", "Human Visitation"))%>% 
+  #Select important variables
   dplyr::select(model_terms, AICc, DeltaAICc, AICWeight)
 
 
@@ -113,9 +120,14 @@ selected_models_summary
 gtsave(selected_models_summary, "output/supp_figures/PERMANOVA_top_models_table.pdf")
 
 
-#Summarized predictors dataframe
+#Summarized predictors table ####
 summarized_predictors <- Summary %>% 
-  rename("Predictor" = "Variable")
+  mutate(Predictor = str_replace(Variable, "percent_developed_", "Urbanization Extent "),
+         Predictor = str_replace(Predictor, "percent_agricultural_", "Agricultural Extent "),
+         Predictor = str_replace(Predictor, "percent_agricultural_", "Agricultural Extent "),
+         Predictor = str_replace(Predictor, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
+         Predictor = str_replace(Predictor, "human_visitors_per_day", "Human Visitation")) %>% dplyr::select(Predictor, Full_Akaike_Adjusted_RSq,Number_of_models)
+  
 
 
 #convert to "gt" object for exporting publication-quality table
@@ -135,6 +147,43 @@ PERMANOVA_predictors_summary
 
 #Export high-quality table
 gtsave(PERMANOVA_predictors_summary, "output/supp_figures/PERMANOVA_top_predictors_table.pdf")
+
+
+# All fitted models table ####
+
+all_fitted_models <- select_models(Fitted, delta_aicc = 11) %>% 
+  #Replace characters from models for better descriptions
+  mutate(model_terms = str_replace(form, "Distance ~ ", ""),
+         model_terms = str_replace(model_terms, "percent_developed_", "Urbanization Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
+         model_terms = str_replace(model_terms, "human_visitors_per_day", "Human Visitation"),
+         model_terms = if_else(model_terms == "1", "Null Model", model_terms))%>% 
+  #Select important variables
+  dplyr::select(model_terms, AICc, DeltaAICc, AICWeight)
+
+
+
+#convert to "gt" object for exporting publication-quality table
+all_fitted_models_gt <- gt(all_fitted_models)
+
+all_fitted_models_summary <- 
+  all_fitted_models_gt |>
+  tab_header(
+    title = "All Fitted PERMANOVA Models"
+  ) |>
+  cols_label(model_terms = md("**Model terms**"),
+             AICc = md("**AICc**"),
+             DeltaAICc = md("**∆AICc**"),
+             AICWeight = md("**AIC Weight**"))
+
+# Show the gt Table
+all_fitted_models_summary
+
+#Export high-quality table
+gtsave(all_fitted_models_summary, "output/supp_figures/PERMANOVA_all_models_table.pdf")
+
 
 
 #################################################################
@@ -536,11 +585,19 @@ manyglm_summary_table <- data.frame (
           f63$AICsum, 
           null$AICsum)) %>% 
   # Rename model term column to remove "Distance ~ " from each cell
-  mutate(model_terms = str_replace(model_terms, "Distance ~ ", "")) %>% 
+  mutate(model_terms = str_replace(model_terms, "Distance ~ ", ""),
+         model_terms = str_replace(model_terms, "percent_developed_", "Urbanization Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
+         model_terms = str_replace(model_terms, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
+         model_terms = str_replace(model_terms, "human_visitors_per_day", "Human Visitation"),
+         model_terms = if_else(model_terms == "1", "Null Model", model_terms)) %>%
+  arrange(AIC) #Rearrange from lowest to highest AIC models
   
   # Filter models for only those with delta AIC less than 2
-  filter(AIC <= min(AIC)+2) %>% 
-  arrange(AIC) #Rearrange from lowest to highest AIC models
+selected_manyglm <- manyglm_summary_table %>% 
+  filter(AIC <= min(AIC)+2)
+
 
 # PART 2D: Take a look at the top models to see if they are a good fit and check assumptions ----------
 
@@ -575,7 +632,9 @@ anova.manyglm(f1, p.uni = "adjusted")
 #Plot model to make sure no trend in residuals vs. fitted plot
 plot(f1) #Nope, a cloud of points. Looks good. 
 
-# PART 2E: Make publication-quality table for export ----------------------------
+# PART 2E: Make publication-quality tables for export ----------------------------
+
+# All MvGLM models table####
 
 #convert to "gt" object for exporting publication-quality table
 manyglm_summary_table_gt <- gt(manyglm_summary_table)
@@ -583,7 +642,7 @@ manyglm_summary_table_gt <- gt(manyglm_summary_table)
 manyglm_summary <- 
   manyglm_summary_table_gt |>
   tab_header(
-    title = "MvGLM Top Models Summary (∆AIC <2)"
+    title = "All MvGLM Models"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
@@ -593,4 +652,25 @@ manyglm_summary <-
 manyglm_summary
 
 #Export high-quality table
-gtsave(manyglm_summary, "output/supp_figures/MvGLM_summary_table.pdf")
+gtsave(manyglm_summary, "output/supp_figures/MvGLM_all_models_table.pdf")
+
+
+#Selected MvGLM models table ####
+
+#convert to "gt" object for exporting publication-quality table
+selected_manyglm_gt <- gt(selected_manyglm)
+
+selected_manyglm_summary <- 
+  selected_manyglm_gt |>
+  tab_header(
+    title = "MvGLM Top Models Summary (∆AIC <2)"
+  ) |>
+  cols_label(model_terms = md("**Model terms**"),
+             df = md("**df**"),
+             AIC = md("**AIC**"))
+
+# Show the gt Table
+selected_manyglm_summary
+
+#Export high-quality table
+gtsave(selected_manyglm_summary, "output/supp_figures/MvGLM_summary_table.pdf")

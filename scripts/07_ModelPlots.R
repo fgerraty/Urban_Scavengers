@@ -30,7 +30,7 @@ carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>
 #Generate color palette
 scavenger_palette <-c("american_crow" = "#fc8d62", "common_raven" = "#66c2a5","deer_mouse" = "#8da0cb",  "coyote" = "#e78ac3")
 #Strip labels for faceting
-scavenger_labels <- c("deer_mouse" = "Deer Mouse", "common_raven" = "Common Raven", "american_crow" = "American Crow", "coyote" = "Coyote")
+scavenger_labels <- c("deer_mouse" = "Deer Mouse ***", "common_raven" = "Common Raven", "american_crow" = "American Crow **", "coyote" = "Coyote")
 #Strip colors for faceting
 american_crow_strip <- strip_themed(background_x = elem_list_rect(fill = c("#fc8d62")))
 common_raven_strip <- strip_themed(background_x = elem_list_rect(fill = c("#66c2a5")))
@@ -162,7 +162,7 @@ coyote_mod_emm <- emmeans(coyote_mod, ~percent_developed_1km,
 coyote_mod_df <- as.data.frame(coyote_mod_emm) %>% 
   mutate(species = "coyote")
 
-#GeneCoyotee Domestic Dog Plot
+#Generate Coyote Plot
 coyote_plot <- ggplot(data=coyote_mod_df,
                    aes(x=percent_developed_1km,
                        y=response,
@@ -666,8 +666,9 @@ scav_prob_plot1 <- ggplot(carcass_level_summary, aes(x=percent_developed_1km, y=
               alpha=0.3,linetype=0)+
   geom_line(data=g1_plot,aes(x=percent_developed_1km,y=scav_prob))+
   theme_few()+
-  labs(y = "Probability of Carcass Scavenging", x="Percent Urbanized (1km)")+
-  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))
+  labs(y = "Probability of Carcass Scavenging", x="")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))+
+  theme(axis.title.y = element_text(size = 20))
   
 
 scav_prob_plot1
@@ -728,8 +729,9 @@ scav_prob_plot2 <- ggplot(carcass_level_summary, aes(x=percent_developed_1km, y=
               alpha=0.3,linetype=0)+
   geom_line(data=g2_plot,aes(x=percent_developed_1km,y=scav_prob))+
   theme_few()+
-  labs(y = "Probability of Complete Carcass Removal", x="Percent Urbanized (1km)")+
-  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))
+  labs(y = "Probability of Complete Carcass Removal", x="")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))+
+  theme(axis.title.y = element_text(size = 20))
 
 
 scav_prob_plot2
@@ -798,8 +800,9 @@ temporal_scav_plot1 <- ggplot(temporal_df, aes(x=percent_developed_1km, y=hours_
               alpha=0.3,linetype=0)+
   geom_line(data=g3_plot,aes(x=percent_developed_1km,y=hours_to_first_scavenging_event))+
   theme_few()+
-  labs(y = "Hours Until First Scavenging Event", x="Percent Urbanized (1km)")+
-  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))
+  labs(y = "Hours Until First Scavenging Event", x="")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))+
+  theme(axis.title.y = element_text(size = 20))
 
 
 temporal_scav_plot1
@@ -866,8 +869,9 @@ temporal_scav_plot2 <- ggplot(temporal_df2, aes(x=percent_developed_1km, y=hours
               alpha=0.3,linetype=0)+
   geom_line(data=g4_plot,aes(x=percent_developed_1km,y=hours_to_full_scavenge))+
   theme_few()+
-  labs(y = "Hours Until Carcass Removal", x="Percent Urbanized (1km)")+
-  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))
+  labs(y = "Hours Until Carcass Removal", x="")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), labels = c(0,25,50,75,100))+
+  theme(axis.title.y = element_text(size = 20))
 
 
 temporal_scav_plot2

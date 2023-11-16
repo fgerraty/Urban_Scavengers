@@ -56,11 +56,11 @@ envirofit_coords <- cbind(envirofit_coords, species = rownames(envirofit_coords)
            species == "human_visitation") 
 
 envirofit_coords <- envirofit_coords %>% 
-  mutate(name = c("American Crow", "Deer Mouse", 
-                  "Percent Urbanized (1km)", "Human Visitation"),
+  mutate(name = c("American Crow **", "Deer Mouse ***", 
+                  "Percent Urbanized (1km) ***", "Human Visitation *"),
          pal = c("grey", "grey", "black", "black"),
          y_shift = c(0, .06, -.05, -.05), 
-         x_shift = c(.2, 0, 0.1, -.15))
+         x_shift = c(.25, 0, 0.1, -.1))
 
 
 # Plot 1: Continuous urbanization gradient NMDS plot --------------------------
