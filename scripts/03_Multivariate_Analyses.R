@@ -193,7 +193,7 @@ gtsave(all_fitted_models_summary, "output/supp_figures/PERMANOVA_all_models_tabl
 # PART 2A: Set up manyglm analysis --------------------------------------------
 
 #set seed for reproducability
-set.seed(999) 
+set.seed(99) 
 
 # Create mvabund object composed of all of the scavenger species and their maxN values 
 scav_assemblage <- mvabund(urban_scavengers_summary[,18:29])
@@ -588,7 +588,6 @@ manyglm_summary_table <- data.frame (
   mutate(model_terms = str_replace(model_terms, "Distance ~ ", ""),
          model_terms = str_replace(model_terms, "percent_developed_", "Urbanization Extent "),
          model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
-         model_terms = str_replace(model_terms, "percent_agricultural_", "Agricultural Extent "),
          model_terms = str_replace(model_terms, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
          model_terms = str_replace(model_terms, "human_visitors_per_day", "Human Visitation"),
          model_terms = if_else(model_terms == "1", "Null Model", model_terms)) %>%
@@ -617,7 +616,7 @@ anova.manyglm(f13, p.uni = "adjusted")
 plot(f13) #Nope, a cloud of points. Looks good. 
 
 
-#Third top mofdel f28: percent_agricultural_5km + human_visitors_per_day
+#Third top model f28: percent_agricultural_5km + human_visitors_per_day
 anova.manyglm(f28, p.uni = "adjusted")
 #This model has one  predictor term with significant multivariate effects: human_visitors_per_day
 
