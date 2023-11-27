@@ -74,7 +74,8 @@ base_map <- ggplot()+
   scale_fill_manual(name = "Urbanization\nLevel", 
                     values = color_palette, 
                     na.value = "transparent",
-                    limits = c('Developed', 'Undeveloped')
+                    limits = c('Developed', 'Undeveloped'),
+                    labels = c("Urbanized", "Undeveloped")
   ) +
   # Add study sites as points to the map
   geom_sf(data = sites_sf, size = 3)+
@@ -97,7 +98,6 @@ base_map <- ggplot()+
     height = unit(1, "cm"), width = unit(1, "cm"),
     pad_y = unit(.75, "cm"),
     style = north_arrow_fancy_orienteering())
-
 
 #Make locator map
 
