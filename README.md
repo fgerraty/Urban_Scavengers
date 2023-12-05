@@ -14,7 +14,7 @@ There are five primary R scripts (turquoise in outline) required to run all cons
 
 -   **02_DataClean.R** cleans and summarizes raw data files.
 
--   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages. This script also generates tables S2, S3, and S4 in the manuscript.
+-   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages. This script also generates tables S2, S3, S4, S5, and S6 in the manuscript.
 
 -   **04_Univariate_Analyses.R** conducts all analyses related to the effects of urbanization on metrics of carrion scavenging ecosystem functions.
 
@@ -24,7 +24,7 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 -   **06_NMDS.R** generates a NMDS plot showing the best-fitting MvGLM model in ordination space (Fig. 4)
 
--   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S1)
+-   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S1, S2)
 
 -   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 3, 7, S3) and the scavenger summary table (Table S1).
 
@@ -216,11 +216,11 @@ Folder **"processed"** containing processed data files
 
 -   Folder **extra figures** containing supporting figures not included in manuscript main text or supplemental information
 
-    -   buffers_plot.pdf - plot of values of urbanization extent and agricultural extent at each site.
-
     -   base_map.pdf, locator_map.pdf- outputs from **05_Map.R** script, combined in Illustrator to make final map (Fig. 1) for publication.
 
     -   scavenge_probability_plot.pdf, total_scavenge_probability_plot.pdf, hours_until_first_scavenge_plot.pdf, hours_until_full_scavenge_plot.pdf - outputs from **07_ModelPlots.R** script, combined in illustrator to make Fig. S2 for publication.
+      
+    -   detection_pie.pdf, removal_pie.pdf, waffle.pdf - outputs from **08_ActivityPlots.R** script, combined in illustrator to make Fig. 3 for publication.
 
     -   urbanization_select_scavengers_glm.pdf - output from **07_ModelPlots.R** script, modified in illustrator to make Fig. 5 for publication.
 
@@ -237,10 +237,12 @@ Folder **"processed"** containing processed data files
 
 -   Folder **supp_figures** containing tables and figures included in the supplemental information of the manuscript.
 
-    -   Table S1 - scavenger_summary_table.png
+    -   Table S1 - scavenger_species_summary_table.png
     -   Table S2 - PERMANOVA_top_models_table.pdf
     -   Table S3 - PERMANOVA_top_predictors_table.pdf
-    -   Table S4 -MvGLM_summary_table.pdf
+    -   Table S4 - PERMANOVA_all_models_table.pdf
+    -   Table S5 - MvGLM_summary_table.pdf
+    -   Table S6 - MvGLM_all_models_table.pdf
     -   Fig. S1 - urbanization_all_scavengers_glm.pdf
     -   Fig. S2 - ecosystem_function.pdf
     -   Fig. S3 - activity_plot_all_scavengers.pdf
