@@ -355,8 +355,7 @@ display: none;
 <div id="urbanization-alters-scavenging-assemblages-but-not-ecosystem-function-on-california-beaches" class="section level1">
 <h1>Urbanization alters scavenging assemblages but not ecosystem
 function on California beaches</h1>
-<p><em>FD Gerraty, A Gobei-Bacaylan, K Diel.</em> In Prep for
-Ecosphere.</p>
+<p><em>FD Gerraty, A Gobei-Bacaylan, K Diel.</em> In Review.</p>
 <p>We examined the influence of urbanization and other human
 disturbances on vertebrate scavenging assemblages and scavenging
 ecosystem functions on California beaches. Here, we provide an outline
@@ -378,8 +377,8 @@ files.</p></li>
 <li><p><strong>03_Multivariate_Analyses.R</strong> conducts all
 permutational analysis of variance (PERMANOVA) and multivariate
 generalized linear modelling (MvGLM) to investigate the best predictors
-of scavenging assemblages. This script also generates tables S2, S3, and
-S4 in the manuscript.</p></li>
+of scavenging assemblages. This script also generates tables S2, S3, S4,
+S5, and S6 in the manuscript.</p></li>
 <li><p><strong>04_Univariate_Analyses.R</strong> conducts all analyses
 related to the effects of urbanization on metrics of carrion scavenging
 ecosystem functions.</p></li>
@@ -393,7 +392,7 @@ extent and study sites (Fig. 1)</p></li>
 best-fitting MvGLM model in ordination space (Fig. 4)</p></li>
 <li><p><strong>07_ModelPlots.R</strong> generates all plots of
 urbanization effects on scavenger species and ecosystem functions (Figs.
-5, 6, S1)</p></li>
+5, 6, S1, S2)</p></li>
 <li><p><strong>08_ActivityPlots.R</strong> generates plots depicting
 temporal dynamics of scavenging activity (Figs. 3, 7, S3) and the
 scavenger summary table (Table S1).</p></li>
@@ -430,7 +429,7 @@ outlines raw data collected for each carcass deployment</p>
 which carcasses were deployed</p></li>
 <li><p>Deploy Date - date of carcass placement</p></li>
 <li><p>Deploy Time - time of carcass placement</p></li>
-<li><p>Camera # - unique camera trap ID</p></li>
+<li><p>Cam # - unique camera trap ID</p></li>
 <li><p>SD # - unique SD card ID</p></li>
 <li><p>Carcass ID - unique fish carcass ID</p></li>
 <li><p>No Scavenge? - boolean (TRUE/FALSE) for whether carcass exhibited
@@ -449,8 +448,6 @@ researchers if not scavenged or if partially scavenged.</p></li>
 <li><p>Camera Failure - boolean (TRUE/FALSE) for whether camera failure
 occurred. Camera failures removed from dataset in cleaning
 steps.</p></li>
-<li><p>Data Entry - date of data entry</p></li>
-<li><p>Notes</p></li>
 </ul></li>
 <li><p><strong>Urban_Scavenger_Carcasses.csv</strong> - outlines raw
 data for each fish carcass</p>
@@ -463,7 +460,7 @@ indicates carcass removal, and post-deployment mass matching
 pre-deployment mass indicated no scavenging activity)</p></li>
 <li><p>kg consumed - mass (kg) of fish scavenged (i.e. pre-deployment
 minus post-deployment mass)</p></li>
-<li><p>proportion consumed - proportion of pre-deployment mass consumed
+<li><p>Proportion Consumed - proportion of pre-deployment mass consumed
 (0-1)</p></li>
 </ul></li>
 <li><p><strong>Urban_Scavenger_Sites.csv</strong> - site locations</p>
@@ -538,7 +535,7 @@ files</p>
 land cover derived in script 01_UrbanizationCalculation.R</p>
 <p>Columns</p>
 <ul>
-<li><p>Site, Latitude, Longitude - same as
+<li><p>Site Name, Latitude, Longitude - same as
 <strong>Urban_Scavenger_Sites.csv</strong> above.</p></li>
 <li><p>percent_developed_1km, percent_developed_3km,
 percent_developed_5km - proportion of land cover (i.e. excluding open
@@ -619,7 +616,9 @@ occurred.</p></li>
 <strong>buffers.csv</strong></p></li>
 </ul></li>
 <li><p><strong>scavenger_recordings.csv -</strong> all columns the same
-as the <strong>Urban_Scavenger_Video_Scoring.csv</strong></p></li>
+as the <strong>Urban_Scavenger_Video_Scoring.csv</strong>, except column
+date_time which includes the date and time together to be used as a
+POSIXct list using the <em>lubridate</em> package.</p></li>
 </ul>
 </div>
 <div id="folder-output-houses-the-following-folders-and-files" class="section level4">
@@ -629,8 +628,6 @@ as the <strong>Urban_Scavenger_Video_Scoring.csv</strong></p></li>
 figures not included in manuscript main text or supplemental
 information</p>
 <ul>
-<li><p>buffers_plot.pdf - plot of values of urbanization extent and
-agricultural extent at each site.</p></li>
 <li><p>base_map.pdf, locator_map.pdf- outputs from
 <strong>05_Map.R</strong> script, combined in Illustrator to make final
 map (Fig. 1) for publication.</p></li>
@@ -639,6 +636,9 @@ total_scavenge_probability_plot.pdf,
 hours_until_first_scavenge_plot.pdf, hours_until_full_scavenge_plot.pdf
 - outputs from <strong>07_ModelPlots.R</strong> script, combined in
 illustrator to make Fig. S2 for publication.</p></li>
+<li><p>detection_pie.pdf, removal_pie.pdf, waffle.pdf - outputs from
+<strong>08_ActivityPlots.R</strong> script, combined in illustrator to
+make Fig. 3 for publication.</p></li>
 <li><p>urbanization_select_scavengers_glm.pdf - output from
 <strong>07_ModelPlots.R</strong> script, modified in illustrator to make
 Fig. 5 for publication.</p></li>
@@ -659,10 +659,12 @@ figures using Illustrator.</p>
 <li><p>Folder <strong>supp_figures</strong> containing tables and
 figures included in the supplemental information of the manuscript.</p>
 <ul>
-<li>Table S1 - scavenger_summary_table.png</li>
+<li>Table S1 - scavenger_species_summary_table.png</li>
 <li>Table S2 - PERMANOVA_top_models_table.pdf</li>
 <li>Table S3 - PERMANOVA_top_predictors_table.pdf</li>
-<li>Table S4 -MvGLM_summary_table.pdf</li>
+<li>Table S4 - PERMANOVA_all_models_table.pdf</li>
+<li>Table S5 - MvGLM_summary_table.pdf</li>
+<li>Table S6 - MvGLM_all_models_table.pdf</li>
 <li>Fig. S1 - urbanization_all_scavengers_glm.pdf</li>
 <li>Fig. S2 - ecosystem_function.pdf</li>
 <li>Fig. S3 - activity_plot_all_scavengers.pdf</li>

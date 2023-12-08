@@ -52,7 +52,7 @@ Folder **"raw"** containing all raw data files
 
     -   Deploy Time - time of carcass placement
 
-    -   Camera \# - unique camera trap ID
+    -   Cam \# - unique camera trap ID
 
     -   SD \# - unique SD card ID
 
@@ -68,10 +68,6 @@ Folder **"raw"** containing all raw data files
 
     -   Camera Failure - boolean (TRUE/FALSE) for whether camera failure occurred. Camera failures removed from dataset in cleaning steps.
 
-    -   Data Entry - date of data entry
-
-    -   Notes
-
 -   **Urban_Scavenger_Carcasses.csv** - outlines raw data for each fish carcass
 
     Columns
@@ -84,7 +80,7 @@ Folder **"raw"** containing all raw data files
 
     -   kg consumed - mass (kg) of fish scavenged (i.e. pre-deployment minus post-deployment mass)
 
-    -   proportion consumed - proportion of pre-deployment mass consumed (0-1)
+    -   Proportion Consumed - proportion of pre-deployment mass consumed (0-1)
 
 -   **Urban_Scavenger_Sites.csv** - site locations
 
@@ -152,7 +148,7 @@ Folder **"processed"** containing processed data files
 
     Columns
 
-    -   Site, Latitude, Longitude - same as **Urban_Scavenger_Sites.csv** above.
+    -   Site Name, Latitude, Longitude - same as **Urban_Scavenger_Sites.csv** above.
 
     -   percent_developed_1km, percent_developed_3km, percent_developed_5km - proportion of land cover (i.e. excluding open water) within specified radius (1km, 3km, or 5km) under our "developed land" class (i.e. NLCD classes "Developed Open Space", "Low Intensity Development", "Medium-Intensity Development", and "High-Intensity Development").
 
@@ -210,7 +206,7 @@ Folder **"processed"** containing processed data files
 
     -   percent_developed_1km - same as **buffers.csv**
 
--   **scavenger_recordings.csv -** all columns the same as the **Urban_Scavenger_Video_Scoring.csv**
+-   **scavenger_recordings.csv -** all columns the same as the **Urban_Scavenger_Video_Scoring.csv**, except column date_time which includes the date and time together to be used as a POSIXct list using the *lubridate* package.
 
 #### Folder "output" houses the following folders and files
 
@@ -219,7 +215,7 @@ Folder **"processed"** containing processed data files
     -   base_map.pdf, locator_map.pdf- outputs from **05_Map.R** script, combined in Illustrator to make final map (Fig. 1) for publication.
 
     -   scavenge_probability_plot.pdf, total_scavenge_probability_plot.pdf, hours_until_first_scavenge_plot.pdf, hours_until_full_scavenge_plot.pdf - outputs from **07_ModelPlots.R** script, combined in illustrator to make Fig. S2 for publication.
-      
+
     -   detection_pie.pdf, removal_pie.pdf, waffle.pdf - outputs from **08_ActivityPlots.R** script, combined in illustrator to make Fig. 3 for publication.
 
     -   urbanization_select_scavengers_glm.pdf - output from **07_ModelPlots.R** script, modified in illustrator to make Fig. 5 for publication.
