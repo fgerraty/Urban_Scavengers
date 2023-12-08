@@ -59,7 +59,7 @@ envirofit_coords <- envirofit_coords %>%
   mutate(name = c("American Crow **", "Deer Mouse ***", 
                   "Percent Urbanized (1km) ***", "Human Visitation *"),
          pal = c("grey", "grey", "black", "black"),
-         y_shift = c(0, .06, -.05, -.05), 
+         y_shift = c(0, .06, -.07, -.05), 
          x_shift = c(.25, 0, 0.1, -.1))
 
 
