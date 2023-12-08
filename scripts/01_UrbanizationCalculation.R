@@ -207,7 +207,7 @@ write_csv(buffers, "data/processed/buffers.csv")
 plot_df <- buffer_longer %>% 
   mutate(type=if_else(class_buffer == "Developed_1km"|
                       class_buffer == "Developed_3km"|
-                      class_buffer == "Developed_5km", "Development", "Agriculture"),
+                      class_buffer == "Developed_5km", "Urbanization", "Agriculture"),
          scale = if_else(class_buffer == "Developed_1km"|
                          class_buffer == "Agricultural_1km", "1km",
                          if_else(class_buffer == "Developed_3km"|
