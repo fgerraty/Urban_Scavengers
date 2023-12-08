@@ -140,7 +140,7 @@ activity_plot<- ggplot(data = filter(activity_df, species == "deer_mouse" | spec
         strip.text = element_text(size=14),
         axis.title.y = element_text(size=14))+
   #Add vertical lines representing the mean time of day of carcass deployments in morning and evening
-  geom_vline(xintercept = c(8.05, 18.58), linetype = "dashed", color = "grey30")
+  geom_vline(xintercept = c(8.05, 18.58), linetype = "dashed", color = "grey60")
 activity_plot
 
 
