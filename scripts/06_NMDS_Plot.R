@@ -17,9 +17,8 @@ set.seed(99)
 #sites
 sites <- urban_scavengers_summary[,1]
 
-#scav_assemblage
-scav_assemblage <- urban_scavengers_summary[,18:29]
-
+#scav_assemblage (all of the scavenger species and their maxN values, divided by the number of fish deployed at each site)
+scav_assemblage <- data.frame(urban_scavengers_summary[,18:29]/urban_scavengers_summary$n_fish_deployed)
 
 nMDS <- metaMDS(scav_assemblage, k=2, trymax = 1000, maxit = 10000)
 #Check stress (less than 0.1 is great)
@@ -89,7 +88,7 @@ plot1 <- ggplot(data=nMDS_coords, aes(x=MDS1, y=MDS2, color = percent_urbanized_
         panel.border = element_rect(colour = "black", fill=NA, linewidth=1),
         legend.position=c(.07,.815),
         legend.background = element_rect(linewidth=.75, colour = "black"))+
-  ylim(c(-1.1, 1.1))
+  ylim(c(-1.2, 1.15))
 
 plot1
 
