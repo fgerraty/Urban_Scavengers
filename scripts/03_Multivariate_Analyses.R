@@ -27,7 +27,8 @@ akaike_adjusted_rsq <- function(DF) {
 }
 
 #Import dataset
-urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv")
+urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv") %>% 
+  filter(site_name != "Strawberry") #Remove strawberry beach from analysis b/c no scavenging assemblage
 
 
 # PART 1A: Set up PERMANOVA analysis -------------------------------------------
@@ -35,8 +36,8 @@ urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.cs
 #set seed for reproducability
 set.seed(999) 
 
-# Create object composed of all of the scavenger species and their maxN values 
-scav_assemblage <- data.frame(urban_scavengers_summary[,18:29])
+# Create object composed of all of the scavenger species and their maxN values, divided by the number of fish deployed at each site
+scav_assemblage <- data.frame(urban_scavengers_summary[,18:29]/urban_scavengers_summary$n_fish_deployed)
 
 #Create object of the predictor values 
 predictors <- urban_scavengers_summary[,c(4:11)]
@@ -73,16 +74,20 @@ Summary #take a look at summary output of each predictor's adjusted r squared ca
 # PART 1D: Look at top models to ensure a good fit -----------------------------
 
 #Take a look at the six top models to see if they fit well
-top_model <- adonis2(distance_matrix ~ predictors$percent_developed_3km)
-top_model_2 <- adonis2(distance_matrix ~ predictors$percent_developed_1km)
+top_model <- adonis2(distance_matrix ~ predictors$percent_developed_1km)
+top_model_2 <- adonis2(distance_matrix ~ predictors$percent_developed_3km)
 top_model_3 <- adonis2(distance_matrix ~ predictors$percent_developed_5km)
-top_model_4 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$domestic_dog_visitors_per_day)
-top_model_5 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$domestic_dog_visitors_per_day)
-top_model_6 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$human_visitors_per_day)
-top_model_7 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$human_visitors_per_day)
+top_model_4 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$percent_agricultural_3km)
+top_model_5 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$domestic_dog_visitors_per_day)
+top_model_6 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$percent_agricultural_5km)
+top_model_7 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$domestic_dog_visitors_per_day)
+top_model_8 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$human_visitors_per_day)
+top_model_9 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_3km)
+top_model_10 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_5km)
+top_model_11 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$human_visitors_per_day)
 
 #Yes, the top three models fit well, but models 4-6 do not have significant additive terms so they are basically single-term models.
-top_model; top_model_2; top_model_3; top_model_4; top_model_5; top_model_6; top_model_7
+top_model; top_model_2; top_model_3; top_model_4; top_model_5; top_model_6; top_model_7; top_model_8; top_model_9; top_model_10; top_model_11
 
 
 # PART 1E: Make publication-quality tables for export ----------------------------
@@ -126,7 +131,8 @@ summarized_predictors <- Summary %>%
          Predictor = str_replace(Predictor, "percent_agricultural_", "Agricultural Extent "),
          Predictor = str_replace(Predictor, "percent_agricultural_", "Agricultural Extent "),
          Predictor = str_replace(Predictor, "domestic_dog_visitors_per_day", "Domestic Dog Visitation"),
-         Predictor = str_replace(Predictor, "human_visitors_per_day", "Human Visitation")) %>% dplyr::select(Predictor, Full_Akaike_Adjusted_RSq,Number_of_models)
+         Predictor = str_replace(Predictor, "human_visitors_per_day", "Human Visitation")) %>% dplyr::select(Predictor, Full_Akaike_Adjusted_RSq,Number_of_models) %>% 
+  arrange(desc(Full_Akaike_Adjusted_RSq))
   
 
 
