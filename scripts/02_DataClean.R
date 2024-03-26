@@ -142,10 +142,13 @@ urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") 
   left_join(., scav_summary, by=c("site_name")) %>% 
   left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
   replace(is.na(.), 0) %>% #Replace NAs with 0s
-  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum)
+  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
 
-
+# Part 2E: generate diversity metrics for each site ------
   
+  mutate(richness = specnumber(.[18:29]),
+         diversity = diversity(.[18:29]))
+
 
 # Part 2E: Export as .csv in "processed data" folder --------------------------
 write_csv(urban_scavengers_summary, "data/processed/urban_scavengers_summary.csv")
