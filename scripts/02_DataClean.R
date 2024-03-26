@@ -210,9 +210,6 @@ carcass_level_summary <-
     #calculate time until full scavenge
     hours_to_full_scavenge = as.numeric( #turn difftime value to numeric
       difftime(full_scavenge_date_time, deployment_date_time, units = c("hours")))) %>% 
-  
-#bring 1km urbanization level into dataframe
-    left_join(., buffers[,c("site_name", "percent_developed_1km")], by = c("site_name")) %>% 
   dplyr::select(-deployment_number, -camera_failure)  #remove irrelevant columns
 
 
