@@ -95,11 +95,11 @@ scav_summary <- right_join(scav_data,
   dplyr::select(site_name, deployment_number, species, count) %>% #Keep relevant columns
   group_by(site_name, species) %>% 
   #Calculate maximum number of confirmed individuals per species/site combination
-  summarise(maxN = max(count)) %>% 
+  summarise(maxN = max(count), .groups = "drop") %>% 
   #Pivot wider for data export and community analyses
   pivot_wider(names_from = species, values_from = maxN, values_fill = 0)
 
-.groups = "drop"
+
 
 
 
@@ -130,9 +130,10 @@ disturbance_summary <- inner_join(scav_data,
 #then ungroup deployment number to lump disturbance level from all deployments together
   ungroup(deployment_number) %>% 
   summarise(human_visitors_per_day = sum(human_visitors)/sum(deployment_length_days),
-    domestic_dog_visitors_per_day = sum(domestic_dog_visitors)/sum(deployment_length_days))
+    domestic_dog_visitors_per_day = sum(domestic_dog_visitors)/sum(deployment_length_days),
+    .groups = "drop")
 
-.groups = "drop"
+
 
 
 # Part 2D: combine summaries into final site-level dataset used for analyses ------
@@ -141,7 +142,6 @@ urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") 
   left_join(., scav_summary, by=c("site_name")) %>% 
   left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
   replace(is.na(.), 0) %>% #Replace NAs with 0s
-  filter(site_name != "Strawberry") %>%  #remove "Strawberry" from analysis because no scavengers present
   dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum)
 
 
@@ -210,12 +210,7 @@ carcass_level_summary <-
   
 #bring 1km urbanization level into dataframe
     left_join(., buffers[,c("site_name", "percent_developed_1km")], by = c("site_name")) %>% 
-  dplyr::select(-deployment_number, -camera_failure) %>%  #remove irrelevant columns
-
-
-#remove "Strawberry" from analysis because no scavengers present 
-
-  filter(site_name != "Strawberry")
+  dplyr::select(-deployment_number, -camera_failure)  #remove irrelevant columns
 
 
 # Part 3B Export as .csv in "processed data" folder --------
