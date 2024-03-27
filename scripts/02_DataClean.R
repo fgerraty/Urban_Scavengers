@@ -110,6 +110,8 @@ disturbance_summary <- inner_join(scav_data,
                                   deployments[,c("site_name", "deployment_number", "sd_number")], 
                                   by=c("deployment_number", "sd_number"), 
                                   relationship = "many-to-many") %>% 
+  #convert "domestic dog visitors" value to TRUE for dog scavenging events
+  mutate(domestic_dog_visitors = if_else(!is.na(domestic_dog), TRUE, domestic_dog_visitors)) %>% 
   #select relevant columns for summary
   dplyr::select(site_name, deployment_number, date_time, human_visitors, domestic_dog_visitors) %>% 
 
