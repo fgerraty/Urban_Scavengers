@@ -73,20 +73,22 @@ Summary #take a look at summary output of each predictor's adjusted r squared ca
 
 # PART 1D: Look at top models to ensure a good fit -----------------------------
 
-#Take a look at the six top models to see if they fit well
+#Take a look at the eleven top models to see if they fit well
 top_model <- adonis2(distance_matrix ~ predictors$percent_developed_1km)
 top_model_2 <- adonis2(distance_matrix ~ predictors$percent_developed_3km)
 top_model_3 <- adonis2(distance_matrix ~ predictors$percent_developed_5km)
 top_model_4 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$percent_agricultural_3km)
-top_model_5 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$domestic_dog_visitors_per_day)
-top_model_6 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$percent_agricultural_5km)
-top_model_7 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$domestic_dog_visitors_per_day)
-top_model_8 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$human_visitors_per_day)
-top_model_9 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_3km)
-top_model_10 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_5km)
-top_model_11 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$human_visitors_per_day)
+top_model_5 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$percent_agricultural_5km)
+top_model_6 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$human_visitors_per_day)
+top_model_7 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_3km)
+top_model_8 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$percent_agricultural_5km)
+top_model_9 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predictors$domestic_dog_visitors_per_day)
+top_model_10 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$human_visitors_per_day)
+top_model_11 <- adonis2(distance_matrix ~ predictors$percent_developed_3km+predictors$domestic_dog_visitors_per_day)
 
-#Yes, the top three models fit well, but models 4-6 do not have significant additive terms so they are basically single-term models.
+
+
+#Yes, the top three models fit well, but models 4-11 do not have significant additive terms so they are basically single-term models.
 top_model; top_model_2; top_model_3; top_model_4; top_model_5; top_model_6; top_model_7; top_model_8; top_model_9; top_model_10; top_model_11
 
 
@@ -606,21 +608,19 @@ selected_manyglm <- manyglm_summary_table %>%
 
 # PART 2D: Take a look at the top models to see if they are a good fit and check assumptions ----------
 
-#Top model (f12): percent_developed_1km + human_visitors_per_day
-anova.manyglm(f12, p.uni = "adjusted")
-#Yes, clearly both percent_developed_1km and human_visitors_per_day have significant multivariate effects
-
-#Plot model to make sure no trend in residuals vs. fitted plot
-plot(f12) #Nope, a cloud of points. Looks good. 
-
-
-#Second top model f13: percent_developed_1km + domestic_dog_visitors_per_day
+#Top model (f13): percent_developed_1km + domestic_dog_visitors_per_day
 anova.manyglm(f13, p.uni = "adjusted")
 #Yes, clearly both percent_developed_1km and domestic_dog_visitors_per_day have significant multivariate effects
 
 #Plot model to make sure no trend in residuals vs. fitted plot
 plot(f13) #Nope, a cloud of points. Looks good. 
 
+#Second top model (f12): percent_developed_1km + human_visitors_per_day
+anova.manyglm(f12, p.uni = "adjusted")
+#Yes, clearly both percent_developed_1km and human_visitors_per_day have significant multivariate effects
+
+#Plot model to make sure no trend in residuals vs. fitted plot
+plot(f12) #Nope, a cloud of points. Looks good. 
 
 #Third top model f28: percent_agricultural_5km + human_visitors_per_day
 anova.manyglm(f28, p.uni = "adjusted")
