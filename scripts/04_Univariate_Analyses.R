@@ -284,7 +284,7 @@ h1k <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging ac
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1k) 
 
-# Check h1i assumptions with DHARMa package
+# Check h1k assumptions with DHARMa package
 h1k_res = simulateResiduals(h1k)
 plot(h1k_res, rank = T)
 testDispersion(h1k_res)
@@ -298,17 +298,53 @@ h1l <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging ac
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1l) 
 
-# Check h1j assumptions with DHARMa package
+# Check h1l assumptions with DHARMa package
 h1l_res = simulateResiduals(h1l)
 plot(h1l_res, rank = T)
 testDispersion(h1l_res)
 plotResiduals(h1l_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
+# H1m - null model -------------
+h1m <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               1 +
+               (1|site_name), #site as random effect
+             family = "binomial", #binomial distribution
+             data=carcass_level_summary);summary(h1m) 
+
+# Check h1m assumptions with DHARMa package
+h1m_res = simulateResiduals(h1m)
+plot(h1m_res, rank = T)
+testDispersion(h1m_res)
+plotResiduals(h1m_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
+
+
+
 
 # Compare Models: ####
 
-arrange(AIC(h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h, h1i, h1j, h1k, h1l), AIC)
+all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h, h1i, h1j, h1k, h1l, h1m),
+                   modnames=(c("Urbanization (1km)",
+                               "Human Visitation",
+                               "Domestic Dog Visitation",
+                               "Land Cover (Urbanization 1km + Agricultural 1km)",
+                               "Urbanization (1km) + Human Visitation",
+                               "Urbanization (1km) + Domestic Dog Visitation",
+                               "Agriculture (1km) + Human Visitation",
+                               "Agriculture (1km) + Domestic Dog Visitation",
+                               "Recreation (Human Visitation + Domestic Dog Visitation)",
+                               "Urbanization + Recreation",
+                               "Land Cover + Recreation",
+                               "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                               "Scavenger Species Richness",
+                               "null")),
+                   second.ord=F) 
 
+selected_scav_prob_models <- all_scav_prob_models %>%
+  filter(Delta_AIC <= 2) 
+
+#Note: One model outperformed all other models (model H1g: Agricultural Extent (1km) and Domestic Dog Visitation). Lets take a look: 
+
+summary(h1g)
 
 
 ##############################################
@@ -488,18 +524,53 @@ h2l <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h2l) 
 
-# Check h2j assumptions with DHARMa package
+# Check h2l assumptions with DHARMa package
 h2l_res = simulateResiduals(h2l)
 plot(h2l_res, rank = T)
 testDispersion(h2l_res)
 plotResiduals(h2l_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
+# H2m - null model -------------
+h2m <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
+               1 +
+               (1|site_name), #site as random effect
+             family = "binomial", #binomial distribution
+             data=carcass_level_summary);summary(h2m) 
+
+# Check h2m assumptions with DHARMa package
+h2m_res = simulateResiduals(h2m)
+plot(h2m_res, rank = T)
+testDispersion(h2m_res)
+plotResiduals(h2m_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
+
+
 # Compare Models: ####
 
-arrange(AIC(h2a, h2b, h2c, h2d, h2e, h2f, h2g, h2h, h2i, h2j, h2k, h2l), AIC)
+all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, 
+                                                h2f, h2g, h2h, h2i, h2j, 
+                                                h2k, h2l, h2m),
+                               modnames=(c("Urbanization (1km)",
+                                           "Human Visitation",
+                                           "Domestic Dog Visitation",
+                                           "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                           "Urbanization (1km) + Human Visitation",
+                                           "Urbanization (1km) + Domestic Dog Visitation",
+                                           "Agriculture (1km) + Human Visitation",
+                                           "Agriculture (1km) + Domestic Dog Visitation",
+                                           "Recreation (Human Visitation + Domestic Dog Visitation)",
+                                           "Urbanization + Recreation",
+                                           "Land Cover + Recreation",
+                                           "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                           "Scavenger Species Richness",
+                                           "null")),
+                               second.ord=F) 
 
+selected_removal_prob_models <- all_removal_prob_models %>%
+  filter(Delta_AIC <= 2) %>% 
+  dplyr::select(c(1:3,6,7))
 
+#None of the models testing our hypotheses outperformed the null model. 
 
 
 #################################################
@@ -686,10 +757,47 @@ testDispersion(h3l_res)
 plotResiduals(h3l_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
+# H3m - null model -------------
+h3m <- glmmTMB(hours_to_first_scavenging_event~ 
+                 1 +
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df);summary(h3m) #dataframe with no-scavenge carcasses removed
+
+# Check h3l assumptions with DHARMa package
+h3m_res = simulateResiduals(h3m)
+plot(h3m_res, rank = T)
+testDispersion(h3m_res)
+plotResiduals(h3m_res, temporal_df$site_name, xlab = "Site", main=NULL)
+
+
+
 # Compare Models: ####
 
-arrange(AIC(h3a, h3b, h3c, h3d, h3e, h3f, h3g, h3h, h3i, h3j, h3k, h3l), AIC)
+all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d, 
+                                              h3e, h3f, h3g, h3h, 
+                                              h3i, h3j, h3k, h3l, h3m),
+                                  modnames=(c("Urbanization (1km)", 
+                                              "Human Visitation",
+                                              "Domestic Dog Visitation",
+                                              "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                              "Urbanization (1km) + Human Visitation",
+                                              "Urbanization (1km) + Domestic Dog Visitation",
+                                              "Agriculture (1km) + Human Visitation",
+                                              "Agriculture (1km) + Domestic Dog Visitation",
+                                              "Recreation (Human Visitation + Domestic Dog Visitation)",
+                                              "Urbanization + Recreation",
+                                              "Land Cover + Recreation",
+                                              "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                              "Scavenger Species Richness",
+                                              "null")),
+                                  second.ord=F) 
 
+selected_first_scav_models <- all_first_scav_models %>%
+  filter(Delta_AIC <= 2) %>% 
+  dplyr::select(c(1:3,6,7))
+
+#None of the models testing our hypotheses outperformed the null model. 
 
 #################################################
 # PART 3D: Time Until Carcass Removal ###########
@@ -875,7 +983,91 @@ testDispersion(h4l_res)
 plotResiduals(h4l_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
+# H4m - null model -------------
+h4m <- glmmTMB(hours_to_full_scavenge~ 
+                 1 +
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df2);summary(h4m) #dataframe with only complete carcass removal
+
+# Check h4m assumptions with DHARMa package
+h4m_res = simulateResiduals(h4m)
+plot(h4m_res, rank = T)
+testDispersion(h4m_res)
+plotResiduals(h4m_res, temporal_df2$site_name, xlab = "Site", main=NULL)
+
+
+
 # Compare Models: ####
 
-arrange(AIC(h4a, h4b, h4c, h4d, h4e, h4f, h4g, h4h, h4i, h4j, h4k, h4l), AIC)
+all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d, 
+                                              h4e, h4f, h4g, h4h, 
+                                              h4i, h4j, h4k, h4l, h4m),
+                                modnames=(c("Urbanization (1km)", 
+                                            "Human Visitation",
+                                            "Domestic Dog Visitation",
+                                            "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                            "Urbanization (1km) + Human Visitation",
+                                            "Urbanization (1km) + Domestic Dog Visitation",
+                                            "Agriculture (1km) + Human Visitation",
+                                            "Agriculture (1km) + Domestic Dog Visitation",
+                                            "Recreation (Human Visitation + Domestic Dog Visitation)",
+                                            "Urbanization + Recreation",
+                                            "Land Cover + Recreation",
+                                            "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                            "Scavenger Species Richness",
+                                            "null")),
+                                second.ord=F) 
+
+selected_removal_time_models <- all_removal_time_models %>%
+  filter(Delta_AIC <= 2) %>% 
+  dplyr::select(c(1:3,6,7))
+
+#None of the models testing our hypotheses outperformed the null model. 
+
+
+
+#################################################
+# PART 4: Export Model Summary Tables ###########
+#################################################
+#Export GT Table Summarizing Exploratory Univariate Models ##########
+
+all_scav_prob_models <- all_scav_prob_models %>% 
+  mutate(response = "scav_prob")
+
+all_removal_prob_models <- all_removal_prob_models %>% 
+  mutate(response = "removal_prob")
+
+all_first_scav_models <- all_first_scav_models %>% 
+  mutate(response = "first_scav")
+
+all_removal_time_models <- all_removal_time_models %>% 
+  mutate(response = "removal_time")
+
+compiled_models <- rbind(all_scav_prob_models, 
+                         all_removal_prob_models, 
+                         all_first_scav_models, 
+                         all_removal_time_models) %>% 
+  group_by(response)
+
+
+compiled_models_gt <- compiled_models %>% 
+  gt(rowname_col = "Modnames", groupname_col = "response")
+
+
+temp <- 
+  compiled_models_gt |>
+  tab_header(
+    title = "Models"
+  ) 
+
+
+
+|>
+  cols_label(Predictor = md("**Predictor**"),
+             Full_Akaike_Adjusted_RSq = md("**Aikake Adjusted Rsq**"),
+             Number_of_models = md("**Number of Top Models**"))
+
+# Show the gt Table
+PERMANOVA_predictors_summary
 
