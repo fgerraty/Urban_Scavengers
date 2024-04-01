@@ -326,21 +326,22 @@ all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h
                    modnames=(c("Urbanization (1km)",
                                "Human Visitation",
                                "Domestic Dog Visitation",
-                               "Land Cover (Urbanization 1km + Agricultural 1km)",
+                               "Urbanization (1km) + Agricultural (1km)",
                                "Urbanization (1km) + Human Visitation",
                                "Urbanization (1km) + Domestic Dog Visitation",
                                "Agriculture (1km) + Human Visitation",
                                "Agriculture (1km) + Domestic Dog Visitation",
-                               "Recreation (Human Visitation + Domestic Dog Visitation)",
-                               "Urbanization + Recreation",
-                               "Land Cover + Recreation",
+                               "Human Visitation + Domestic Dog Visitation",
+                               "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
+                               "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
                                "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
                                "Scavenger Species Richness",
                                "null")),
-                   second.ord=F) 
+                   second.ord=F) %>% 
+  mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
 selected_scav_prob_models <- all_scav_prob_models %>%
-  filter(Delta_AIC <= 2) 
+  filter(Delta_AIC <= 2); selected_scav_prob_models
 
 #Note: One model outperformed all other models (model H1g: Agricultural Extent (1km) and Domestic Dog Visitation). Lets take a look: 
 
@@ -553,22 +554,23 @@ all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e,
                                modnames=(c("Urbanization (1km)",
                                            "Human Visitation",
                                            "Domestic Dog Visitation",
-                                           "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                           "Urbanization (1km) + Agricultural (1km)",
                                            "Urbanization (1km) + Human Visitation",
                                            "Urbanization (1km) + Domestic Dog Visitation",
                                            "Agriculture (1km) + Human Visitation",
                                            "Agriculture (1km) + Domestic Dog Visitation",
-                                           "Recreation (Human Visitation + Domestic Dog Visitation)",
-                                           "Urbanization + Recreation",
-                                           "Land Cover + Recreation",
+                                           "Human Visitation + Domestic Dog Visitation",
+                                           "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
+                                           "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
                                            "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
                                            "Scavenger Species Richness",
                                            "null")),
-                               second.ord=F) 
+                               second.ord=F) %>% 
+  mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
 selected_removal_prob_models <- all_removal_prob_models %>%
   filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7))
+  dplyr::select(c(1:3,6,7)); selected_removal_prob_models
 
 #None of the models testing our hypotheses outperformed the null model. 
 
@@ -777,25 +779,27 @@ plotResiduals(h3m_res, temporal_df$site_name, xlab = "Site", main=NULL)
 all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d, 
                                               h3e, h3f, h3g, h3h, 
                                               h3i, h3j, h3k, h3l, h3m),
-                                  modnames=(c("Urbanization (1km)", 
+                                  modnames=(c("Urbanization (1km)",
                                               "Human Visitation",
                                               "Domestic Dog Visitation",
-                                              "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                              "Urbanization (1km) + Agricultural (1km)",
                                               "Urbanization (1km) + Human Visitation",
                                               "Urbanization (1km) + Domestic Dog Visitation",
                                               "Agriculture (1km) + Human Visitation",
                                               "Agriculture (1km) + Domestic Dog Visitation",
-                                              "Recreation (Human Visitation + Domestic Dog Visitation)",
-                                              "Urbanization + Recreation",
-                                              "Land Cover + Recreation",
+                                              "Human Visitation + Domestic Dog Visitation",
+                                              "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
+                                              "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
                                               "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
                                               "Scavenger Species Richness",
                                               "null")),
-                                  second.ord=F) 
+                                second.ord=F) %>% 
+  mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
+
 
 selected_first_scav_models <- all_first_scav_models %>%
   filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7))
+  dplyr::select(c(1:3,6,7)); selected_first_scav_models
 
 #None of the models testing our hypotheses outperformed the null model. 
 
@@ -1003,25 +1007,26 @@ plotResiduals(h4m_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d, 
                                               h4e, h4f, h4g, h4h, 
                                               h4i, h4j, h4k, h4l, h4m),
-                                modnames=(c("Urbanization (1km)", 
+                                modnames=(c("Urbanization (1km)",
                                             "Human Visitation",
                                             "Domestic Dog Visitation",
-                                            "Land Cover (Urbanization 1km + Agricultural 1km)",
+                                            "Urbanization (1km) + Agricultural (1km)",
                                             "Urbanization (1km) + Human Visitation",
                                             "Urbanization (1km) + Domestic Dog Visitation",
                                             "Agriculture (1km) + Human Visitation",
                                             "Agriculture (1km) + Domestic Dog Visitation",
-                                            "Recreation (Human Visitation + Domestic Dog Visitation)",
-                                            "Urbanization + Recreation",
-                                            "Land Cover + Recreation",
+                                            "Human Visitation + Domestic Dog Visitation",
+                                            "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
+                                            "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
                                             "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
                                             "Scavenger Species Richness",
                                             "null")),
-                                second.ord=F) 
+                                second.ord=F) %>% 
+  mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
 selected_removal_time_models <- all_removal_time_models %>%
   filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7))
+  dplyr::select(c(1:3,6,7)); all_removal_time_models
 
 #None of the models testing our hypotheses outperformed the null model. 
 
@@ -1030,44 +1035,102 @@ selected_removal_time_models <- all_removal_time_models %>%
 #################################################
 # PART 4: Export Model Summary Tables ###########
 #################################################
-#Export GT Table Summarizing Exploratory Univariate Models ##########
 
-all_scav_prob_models <- all_scav_prob_models %>% 
-  mutate(response = "scav_prob")
+#Table S7: Scavenging Probability Summary Table -------------------------------
 
-all_removal_prob_models <- all_removal_prob_models %>% 
-  mutate(response = "removal_prob")
+scav_prob_gt <- gt(all_scav_prob_models)
 
-all_first_scav_models <- all_first_scav_models %>% 
-  mutate(response = "first_scav")
-
-all_removal_time_models <- all_removal_time_models %>% 
-  mutate(response = "removal_time")
-
-compiled_models <- rbind(all_scav_prob_models, 
-                         all_removal_prob_models, 
-                         all_first_scav_models, 
-                         all_removal_time_models) %>% 
-  group_by(response)
-
-
-compiled_models_gt <- compiled_models %>% 
-  gt(rowname_col = "Modnames", groupname_col = "response")
-
-
-temp <- 
-  compiled_models_gt |>
+scav_prob_summary <- 
+  scav_prob_gt |>
   tab_header(
-    title = "Models"
-  ) 
+    title = "Carrion Processing Analysis Summary: (1) Probability of Carcass Scavenging",
+    subtitle = "Linear Mixed-Effects Models with Binomial Distributions and Logit Link Functions"
+  ) |>
+  cols_label(Modnames = md("**Model terms**"),
+             K = md("**K**"),
+             AIC = md("**AIC**"),
+             Delta_AIC = md("**∆AIC**"),
+             ModelLik = md("**Model Likelihood**"),
+             AICWt = md("**AIC Weight**"),
+             LL = md("**Log Likelihood**"),
+             Cum.Wt = md("**Cumulative Weight**"))
+scav_prob_summary
 
 
+#Export high-quality table
+gtsave(scav_prob_summary, "output/supp_figures/scavenging_probability_table.pdf")
 
-|>
-  cols_label(Predictor = md("**Predictor**"),
-             Full_Akaike_Adjusted_RSq = md("**Aikake Adjusted Rsq**"),
-             Number_of_models = md("**Number of Top Models**"))
 
-# Show the gt Table
-PERMANOVA_predictors_summary
+#Table S8: Carcass Removal Summary Table --------------------------------------
 
+removal_prob_gt <- gt(all_removal_prob_models)
+
+removal_prob_summary <- 
+  removal_prob_gt |>
+  tab_header(
+    title = "Carrion Processing Analysis Summary: (2) Probability of Carcass Removal",
+    subtitle = "Linear Mixed-Effects Models with Binomial Distributions and Logit Link Functions"
+  ) |>
+  cols_label(Modnames = md("**Model terms**"),
+             K = md("**K**"),
+             AIC = md("**AIC**"),
+             Delta_AIC = md("**∆AIC**"),
+             ModelLik = md("**Model Likelihood**"),
+             AICWt = md("**AIC Weight**"),
+             LL = md("**Log Likelihood**"),
+             Cum.Wt = md("**Cumulative Weight**"))
+removal_prob_summary
+
+
+#Export high-quality table
+gtsave(removal_prob_summary, "output/supp_figures/removal_probability_table.pdf")
+
+
+#Table S9: Time to First Scavenge Summary Table --------------------------------
+
+first_scav_gt <- gt(all_first_scav_models)
+
+first_scav_summary <- 
+  first_scav_gt |>
+  tab_header(
+    title = "Carrion Processing Analysis Summary: (3) Time until first scavenging event",
+    subtitle = "Linear Mixed-Effects Models with Gamma Distributions and Log Link Functions"
+  ) |>
+  cols_label(Modnames = md("**Model terms**"),
+             K = md("**K**"),
+             AIC = md("**AIC**"),
+             Delta_AIC = md("**∆AIC**"),
+             ModelLik = md("**Model Likelihood**"),
+             AICWt = md("**AIC Weight**"),
+             LL = md("**Log Likelihood**"),
+             Cum.Wt = md("**Cumulative Weight**"))
+first_scav_summary
+
+
+#Export high-quality table
+gtsave(first_scav_summary, "output/supp_figures/time_to_first_scavenging_table.pdf")
+
+
+#Table S10: Time to Carcass Removal Summary Table --------------------------------
+
+removal_time_gt <- gt(all_removal_time_models)
+
+removal_time_summary <- 
+  removal_time_gt |>
+  tab_header(
+    title = "Carrion Processing Analysis Summary: (3) Time Until Carcass Removal",
+    subtitle = "Linear Mixed-Effects Models with Gamma Distributions and Log Link Functions"
+  ) |>
+  cols_label(Modnames = md("**Model terms**"),
+             K = md("**K**"),
+             AIC = md("**AIC**"),
+             Delta_AIC = md("**∆AIC**"),
+             ModelLik = md("**Model Likelihood**"),
+             AICWt = md("**AIC Weight**"),
+             LL = md("**Log Likelihood**"),
+             Cum.Wt = md("**Cumulative Weight**"))
+removal_time_summary
+
+
+#Export high-quality table
+gtsave(removal_time_summary, "output/supp_figures/time_to_carcass_removal_table.pdf")
