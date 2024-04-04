@@ -884,3 +884,78 @@ pdf("output/extra_figures/hours_until_full_scavenge_plot.pdf",
 plot(temporal_scav_plot2)
 
 dev.off()
+
+
+##############################################################################
+# PART 5: Domestic Dog and Agricultural Effect on Carrion Processing Plot ####
+##############################################################################
+
+
+#Recreate model h1g from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
+h1g <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               percent_agricultural_1km + #1km urbanization extent
+               domestic_dog_visitors_per_day +
+               (1|site_name), #site as random effect
+             family = "binomial", #binomial distribution
+             data=carcass_level_summary);summary(h1g) 
+
+
+#Create dataframe for generating a line and error bar representing model g2
+h1g_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,6), 
+                    percent_agricultural_1km = rep(c(0,.1,.2,.3,.4,.5), each = 26),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h1g_plot$scav_prob <- predict(h1g,
+                              newdata=h1g_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a logit link. 
+
+#predict mean values on link/logit scale
+h1g_plot$pred_scav_prob_link=predict(h1g,newdata=h1g_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h1g_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h1g,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h1g_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h1g_plot$pSE=plogis(h1g_plot$pred_scav_prob_link+h1g_plot$SE) 
+# predicted mean - 1 SE on response scale
+h1g_plot$mSE=plogis(h1g_plot$pred_scav_prob_link-h1g_plot$SE) 
+
+
+
+#Turn percent_agricultural_1km variables into factors for plotting
+h1g_plot <- h1g_plot %>% 
+  mutate(percent_agricultural_1km = factor(percent_agricultural_1km, levels = c(.5,.4,.3,.2,.1,0)))
+
+carcass_level_summary <- carcass_level_summary %>% 
+  mutate(percent_agricultural_1km = factor(percent_agricultural_1km, levels = c(.5,.4,.3,.2,.1,0)))
+
+
+#Generate ggplot
+dog_agriculture_plot <- ggplot(carcass_level_summary, 
+               aes(x=domestic_dog_visitors_per_day, y=scav_prob))+ 
+  geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
+  geom_ribbon(data=h1g_plot,
+              aes(x=domestic_dog_visitors_per_day,
+                  ymin=mSE,ymax=pSE, fill = percent_agricultural_1km),
+              alpha=0.2,linetype=0)+
+  geom_line(data=h1g_plot,aes(x=domestic_dog_visitors_per_day,y=scav_prob, color = temp))+
+  theme_few()+
+  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nAgricultural\n(1km)")+
+  scale_color_viridis_d(labels = c(50,40,30,20,10,0))+
+  scale_fill_viridis_d(guide = "none")
+
+#Export high-quality figure of dog and agriculture plot
+
+pdf("output/main_figures/best_univariate_model_plot.pdf", 
+    width = 10, height = 6)
+
+plot(dog_agriculture_plot)
+
+dev.off()
+

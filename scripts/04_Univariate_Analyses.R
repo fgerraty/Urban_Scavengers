@@ -340,9 +340,6 @@ all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h
                    second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
-selected_scav_prob_models <- all_scav_prob_models %>%
-  filter(Delta_AIC <= 2); selected_scav_prob_models
-
 #Note: One model outperformed all other models (model H1g: Agricultural Extent (1km) and Domestic Dog Visitation). Lets take a look: 
 
 summary(h1g)
@@ -568,10 +565,6 @@ all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e,
                                second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
-selected_removal_prob_models <- all_removal_prob_models %>%
-  filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7)); selected_removal_prob_models
-
 #None of the models testing our hypotheses outperformed the null model. 
 
 
@@ -795,11 +788,6 @@ all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d,
                                               "null")),
                                 second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
-
-
-selected_first_scav_models <- all_first_scav_models %>%
-  filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7)); selected_first_scav_models
 
 #None of the models testing our hypotheses outperformed the null model. 
 
@@ -1118,7 +1106,7 @@ removal_time_gt <- gt(all_removal_time_models)
 removal_time_summary <- 
   removal_time_gt |>
   tab_header(
-    title = "Carrion Processing Analysis Summary: (3) Time Until Carcass Removal",
+    title = "Carrion Processing Analysis Summary: (4) Time Until Carcass Removal",
     subtitle = "Linear Mixed-Effects Models with Gamma Distributions and Log Link Functions"
   ) |>
   cols_label(Modnames = md("**Model terms**"),

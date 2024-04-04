@@ -152,7 +152,7 @@ urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") 
          diversity = diversity(.[18:29]))
 
 
-# Part 2E: Export as .csv in "processed data" folder --------------------------
+# Part 2F: Export as .csv in "processed data" folder --------------------------
 write_csv(urban_scavengers_summary, "data/processed/urban_scavengers_summary.csv")
 
 
@@ -217,4 +217,50 @@ carcass_level_summary <-
 
 # Part 3B Export as .csv in "processed data" folder --------
 write_csv(carcass_level_summary, "data/processed/carcass_level_summary.csv")
+
+
+
+####################################################################
+# PART 4: Adjusted Site-Level Summary With Sum MaxN ################
+####################################################################
+
+# Part 4A: summarize scavenging assemblage by site with the sum of MaxN values from each 48-hour deployment --------------
+scav_summary_2 <- right_join(scav_data, 
+                           deployments[,c("site_name", "deployment_number", "sd_number")], 
+                           by=c("deployment_number", "sd_number"),
+                           relationship = "many-to-many") %>% 
+  pivot_longer(cols = deer_mouse:domestic_cat, #pivot longer
+               names_to = "species",
+               values_to = "count") %>%
+  filter(!is.na(count)) %>% #Drop 0 values 
+  #Select only scavengers / scavenging events
+  filter(partial_scavenge == "TRUE" | 
+           full_scavenge_carcass_removal == "TRUE") %>% 
+  dplyr::select(site_name, deployment_number, species, count) %>% #Keep relevant columns
+  #Calculate maximum number of confirmed individuals per site/deployment/species combination
+  group_by(site_name, deployment_number, species) %>% 
+  summarise(maxN = max(count), .groups = "drop") %>% 
+  #Calculate sum of MaxN values per site/species combination
+  group_by(site_name, species) %>% 
+  summarise(sum_maxN = sum(maxN), .groups = "drop") %>% 
+  #Pivot wider for data export and community analyses
+  pivot_wider(names_from = species, values_from = sum_maxN, values_fill = 0)
+
+
+# Part 4B: combine summaries into site-level dataset used for supplemental analyses ------
+
+adjusted_urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") %>% 
+  left_join(., scav_summary_2, by=c("site_name")) %>% 
+  left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
+  replace(is.na(.), 0) %>% #Replace NAs with 0s
+  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
+  
+# Part 2E: generate diversity metrics for each site ------
+
+mutate(richness = specnumber(.[18:29]),
+       diversity = diversity(.[18:29]))
+
+
+# Part 2E: Export as .csv in "processed data" folder --------------------------
+write_csv(adjusted_urban_scavengers_summary, "data/processed/adjusted_urban_scavengers_summary.csv")
 
