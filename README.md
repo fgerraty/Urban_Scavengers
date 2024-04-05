@@ -1,4 +1,4 @@
-# Urbanization alters scavenging assemblages but not ecosystem function on California beaches
+# Urbanization alters sandy beach scavenging assemblages and dogs suppress ecosystem function
 
 *FD Gerraty, A Gobei-Bacaylan, K Diel.* In Revision.
 
