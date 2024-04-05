@@ -903,7 +903,7 @@ h1b <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging 
                data=carcass_level_summary);summary(h1b) 
 
 
-#Create dataframe for generating a line and error bar representing model g2
+#Create dataframe for generating a line and error bar representing model h1b
 h1b_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,5), 
                     percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 26),
                     site_name = "Blacks") #Choose random site (wont impact output)
@@ -933,39 +933,123 @@ h1b_plot$mSE=plogis(h1b_plot$pred_scav_prob_link-h1b_plot$SE)
 
 #Turn percent_developed_1km variables into factors for plotting
 h1b_plot <- h1b_plot %>% 
-  mutate(percent_developed_1km = factor(percent_developed_1km))
+  mutate(percent_developed_1km = factor(percent_developed_1km, levels = c(1, .75, .5, .25, 0)))
 
-carcass_level_summary <- carcass_level_summary %>% 
-  mutate(percent_developed_1km = factor(percent_developed_1km))
+carcass_level_summary_2 <- carcass_level_summary %>% 
+  mutate(percent_developed_1km = factor(percent_developed_1km, levels = c(1, .75, .5, .25, 0)))
 
 
 #Generate ggplot
-dog_urbanization_plot <- ggplot(carcass_level_summary, 
+dog_urbanization_plot <- ggplot(carcass_level_summary_2, 
                aes(x=domestic_dog_visitors_per_day, y=scav_prob))+ 
   geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
   geom_ribbon(data=h1b_plot,
               aes(x=domestic_dog_visitors_per_day,
                   ymin=mSE,ymax=pSE, fill = percent_developed_1km),
-              alpha=0.2,linetype=0)+
+              alpha=0.3,linetype=0)+
   geom_line(data=h1b_plot,aes(x=domestic_dog_visitors_per_day,
                               y=scav_prob, 
                               color = percent_developed_1km))+
   theme_few()+
   labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nUrbanized\n(1km)")+
-  scale_color_gradientn(colors = wes_palette("Zissou1", 
-                                             type = "discrete"), 
-                        name="Percent \nUrbanized \n(1km)")+
-  
-  scale_fill_viridis_d(guide = "none")
+  scale_color_manual(values = rev(wes_palette("Zissou1", 
+                                             n=5,
+                                          type = "discrete")), 
+                     name="Percent \nUrbanized \n(1km)",
+                     labels = c("100","75","50","25","0"))+
+  scale_fill_manual(values = rev(wes_palette("Zissou1", 
+                                         n=5,
+                                         type = "discrete")),
+                    name="Percent \nUrbanized \n(1km)",
+                    labels = c("100","75","50","25","0"))
 
 dog_urbanization_plot
 
 #Export high-quality figure of dog and urbanization plot
 
-pdf("output/main_figures/best_univariate_model_plot.pdf", 
+pdf("output/main_figures/dog_urbanization_glmm.pdf", 
     width = 10, height = 6)
 
-plot(dog_agriculture_plot)
+plot(dog_urbanization_plot)
 
 dev.off()
+
+
+
+##############################################################################
+# PART 6: Time of Day and Urbanization Effect on Carrion Processing Plot #####
+##############################################################################
+
+##############################################
+# PART 6A: Time to First Scavenging Event ####
+##############################################
+
+#Create datafeame filtering out carcasses in which no scavenging occurred
+temporal_df <- carcass_level_summary %>% 
+  filter(hours_to_first_scavenging_event != "NA") %>% 
+  mutate(site_name = factor(site_name)) #remove unused levels from factor
+
+#Recreate model h3d from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km urbanization buffer and deployment time (day/night) with a mixed-effects gamma regression 
+
+h3d <- glmmTMB(hours_to_first_scavenging_event~ 
+                 percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM+
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df);summary(h3d) #dataframe with no-scavenge carcasses removed
+
+
+
+#Create dataframe for generating a line and error bar representing model h3d
+h3d_plot=data.frame(percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 2),
+                    deployment_type_AM_PM = rep(c("day", "night"), 5),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h3d_plot$hours_to_first_scavenging_event <- predict(h3d,
+                              newdata=h3d_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a log link. 
+
+#predict mean values on link/log scale
+h3d_plot$pred_scav_prob_link=predict(h3d,newdata=h3d_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h3d_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h3d,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h3d_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h3d_plot$pSE=exp(h3d_plot$pred_scav_prob_link+h3d_plot$SE) 
+# predicted mean - 1 SE on response scale
+h3d_plot$mSE=exp(h3d_plot$pred_scav_prob_link-h3d_plot$SE) 
+
+
+
+urbanization_period_plot1 <- ggplot(temporal_df, aes(x=percent_developed_1km, y=hours_to_first_scavenging_event, color = deployment_type_AM_PM))+ 
+  geom_point(alpha = .5, size=4, shape=16)+
+  geom_ribbon(data=h3d_plot,
+              aes(x=percent_developed_1km,
+                  ymin=mSE,ymax=pSE, fill = deployment_type_AM_PM),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h3d_plot,aes(x=percent_developed_1km,
+                             y=hours_to_first_scavenging_event,
+                             color =deployment_type_AM_PM))+
+  theme_few()+
+  labs(y = "Hours Until First Scavenging Event", 
+       x="Percent Urbanized (1km)",
+       color = "Deployment\nType",
+       fill = "Deployment\nType")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), 
+                     labels = c(0,25,50,75,100))+
+  scale_color_manual(values = c("#FFB921","#003f7d"),
+                     labels = c("Day", "Night"))+
+  scale_fill_manual(values = c("#FFB921","#003f7d"),
+                    labels = c("Day", "Night"))
+
+
+urbanization_period_plot1
+
 
