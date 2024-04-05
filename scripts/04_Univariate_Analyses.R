@@ -17,8 +17,7 @@ urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.cs
   #Create new columns for adjusted MaxN values (i.e., MaxN / # fish deployed) of the most documented scavenger species
   mutate(common_raven_adj = common_raven/n_fish_deployed,
          american_crow_adj = american_crow/n_fish_deployed,
-         deer_mouse_adj = deer_mouse/n_fish_deployed) %>% 
-  filter(site_name != "Strawberry")
+         deer_mouse_adj = deer_mouse/n_fish_deployed) 
 
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>%    
@@ -27,8 +26,7 @@ carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>
          #Create new column "full_scav_prob" which classifies scavenging as 1/0 for each carcass that was fully scavenged AKA carcass removal)
          full_scav_prob = if_else(no_scavenge == FALSE & partial_scavenge == FALSE, 1, 0)) %>% 
   #bring environmental variables and adjusted species abundances into dataframe
-  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km", "percent_agricultural_3km", "human_visitors_per_day", "domestic_dog_visitors_per_day", "common_raven_adj", "american_crow_adj", "deer_mouse_adj","richness", "diversity")], by = c("site_name")) %>% 
-  filter(site_name!="Strawberry") %>% 
+  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km", "percent_agricultural_5km", "human_visitors_per_day", "domestic_dog_visitors_per_day", "common_raven_adj", "american_crow_adj", "deer_mouse_adj","richness", "diversity")], by = c("site_name")) %>% 
   
   #convert site name to factor for random effects
   mutate(site_name = factor(site_name)) 
@@ -154,10 +152,10 @@ testDispersion(h1b_res)
 plotResiduals(h1b_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ---------------------
+# H1c - Hypothesis 4: Agriculture + human visitation predicts scavenging rates ---------------------
 h1c <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_developed_1km + #1km urbanization extent
-               percent_agricultural_3km + #3km agricultural extent
+               percent_agricultural_5km + #3km agricultural extent
+               human_visitors_per_day + #human visitation
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1c) 
@@ -246,11 +244,11 @@ plotResiduals(h1h_res, carcass_level_summary$site_name, xlab = "Site", main=NULL
 all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h),
                    modnames=(c("Urbanization (1km)",
                                "Urbanization (1km) + Human Visitation",
-                               "Urbanization (1km) + Domestic Dog Visitation",
-                               "Urbanization (1km) + Agricultural (1km)",
+                               "Urbanization (1km) + Domestic Dog Visitation***",
+                               "Agricultural (5km) + Human Visitation",
                                "Urbanization (1km) + Deployment Type (Day/Night)",
-                               "Domestic Dog Visitation + Deployment Type (Day/Night)",
-                               "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
+                               "Domestic Dog Visitation* + Deployment Type (Day/Night)",
+                               "Scavenger Abundance (Common Raven MaxN* + American Crow MaxN* + Deer Mouse MaxN)",
                                "Scavenger Species Richness",
                                "null")),
                    second.ord=F) %>% 
@@ -291,10 +289,10 @@ testDispersion(h2b_res)
 plotResiduals(h2b_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ---------------------
+# H2c - Hypothesis 4: Agriculture + human visitation predicts scavenging rates ---------
 h2c <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
-                 percent_developed_1km + #1km urbanization extent
-                 percent_agricultural_3km + #3km agricultural extent
+                 percent_agricultural_5km + #3km agricultural extent
+                 human_visitors_per_day +
                  (1|site_name), #site as random effect
                family = "binomial", #binomial distribution
                data=carcass_level_summary);summary(h2c) 
@@ -384,10 +382,10 @@ all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, h2f
                                modnames=(c("Urbanization (1km)",
                                            "Urbanization (1km) + Human Visitation",
                                            "Urbanization (1km) + Domestic Dog Visitation",
-                                           "Urbanization (1km) + Agricultural (1km)",
+                                           "Agricultural (5km) + Human Visitation",
                                            "Urbanization (1km) + Deployment Type (Day/Night)",
                                            "Domestic Dog Visitation + Deployment Type (Day/Night)",
-                                           "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
+                                           "Scavenger Abundance (Common Raven MaxN* + American Crow MaxN + Deer Mouse MaxN)",
                                            "Scavenger Species Richness",
                                            "null")),
                                second.ord=F) %>% 
@@ -430,13 +428,13 @@ testDispersion(h3b_res)
 plotResiduals(h3b_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ----------------
+# H3c - Hypothesis 4: Agriculture + human visitation predicts scavenging rates ----------
 h3c <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_developed_1km + #1km urbanization extent
-               percent_agricultural_3km + #3km agricultural extent
+               percent_agricultural_5km + #3km agricultural extent
+               human_visitors_per_day +
                (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3c) #dataframe with no-scavenge carcasses removed
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df);summary(h3c) #dataframe with no-scavenge carcasses removed
 
 # Check h3c assumptions with DHARMa package
 h3c_res = simulateResiduals(h3c)
@@ -524,10 +522,10 @@ all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d,
                                   modnames=(c("Urbanization (1km)",
                                               "Urbanization (1km) + Human Visitation",
                                               "Urbanization (1km) + Domestic Dog Visitation",
-                                              "Urbanization (1km) + Agricultural (1km)",
-                                              "Urbanization (1km) + Deployment Type (Day/Night)",
-                                              "Domestic Dog Visitation + Deployment Type (Day/Night)",
-                                              "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
+                                              "Agricultural (5km) + Human Visitation",
+                                              "Urbanization (1km) + Deployment Type (Day/Night)***",
+                                              "Domestic Dog Visitation + Deployment Type (Day/Night)***",
+                                              "Scavenger Abundance (Common Raven MaxN + American Crow MaxN + Deer Mouse MaxN)",
                                               "Scavenger Species Richness",
                                               "null")),
                                 second.ord=F) %>% 
@@ -567,10 +565,10 @@ testDispersion(h4b_res)
 plotResiduals(h4b_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# h4c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ----------------
+# h4c - Hypothesis 4: Agriculture + human visitation predicts scavenging rates --------
 h4c <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_developed_1km + #1km urbanization extent
-                 percent_agricultural_3km + #3km agricultural extent
+                 percent_agricultural_5km + #5km agricultural extent
+                 human_visitors_per_day +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
                data=temporal_df2);summary(h4c) #dataframe with no-scavenge carcasses removed
@@ -662,10 +660,10 @@ all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d,
                                 modnames=(c("Urbanization (1km)",
                                             "Urbanization (1km) + Human Visitation",
                                             "Urbanization (1km) + Domestic Dog Visitation",
-                                            "Urbanization (1km) + Agricultural (1km)",
-                                            "Urbanization (1km) + Deployment Type (Day/Night)",
-                                            "Domestic Dog Visitation + Deployment Type (Day/Night)",
-                                            "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
+                                            "Agricultural (5km) + Human Visitation",
+                                            "Urbanization (1km) + Deployment Type (Day/Night)***",
+                                            "Domestic Dog Visitation + Deployment Type (Day/Night)***",
+                                            "Scavenger Abundance (Common Raven MaxN + American Crow MaxN + Deer Mouse MaxN)",
                                             "Scavenger Species Richness",
                                             "null")),
                                 second.ord=F) %>% 
