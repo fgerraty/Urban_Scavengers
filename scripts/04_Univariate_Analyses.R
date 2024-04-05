@@ -17,9 +17,8 @@ urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.cs
   #Create new columns for adjusted MaxN values (i.e., MaxN / # fish deployed) of the most documented scavenger species
   mutate(common_raven_adj = common_raven/n_fish_deployed,
          american_crow_adj = american_crow/n_fish_deployed,
-         deer_mouse_adj = deer_mouse/n_fish_deployed,
-         rat_adj = rat/n_fish_deployed,
-         domestic_dog_adj = domestic_dog/n_fish_deployed)
+         deer_mouse_adj = deer_mouse/n_fish_deployed) %>% 
+  filter(site_name != "Strawberry")
 
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>%    
@@ -28,8 +27,8 @@ carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>
          #Create new column "full_scav_prob" which classifies scavenging as 1/0 for each carcass that was fully scavenged AKA carcass removal)
          full_scav_prob = if_else(no_scavenge == FALSE & partial_scavenge == FALSE, 1, 0)) %>% 
   #bring environmental variables and adjusted species abundances into dataframe
-  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km", "percent_agricultural_1km", "human_visitors_per_day", "domestic_dog_visitors_per_day", "common_raven_adj", "american_crow_adj", "deer_mouse_adj", "rat_adj", "domestic_dog_adj", "richness", "diversity")], by = c("site_name")) %>% 
-#  filter(site_name!="Strawberry") %>% 
+  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km", "percent_agricultural_3km", "human_visitors_per_day", "domestic_dog_visitors_per_day", "common_raven_adj", "american_crow_adj", "deer_mouse_adj","richness", "diversity")], by = c("site_name")) %>% 
+  filter(site_name!="Strawberry") %>% 
   
   #convert site name to factor for random effects
   mutate(site_name = factor(site_name)) 
@@ -44,7 +43,7 @@ carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>
 ## Model fitting 
 
 # G1: Analyze probability of scavenging using using 1km urbanization buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
-g1=glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+g1=glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
            percent_developed_1km + #1km urbanization extent
            (1|site_name), #site as random effect
          family = "binomial", #binomial distribution
@@ -59,7 +58,7 @@ plotResiduals(g1_res, as.factor(carcass_level_summary$site_name), xlab = "Site",
 # PART 2B: Analyze deployment data for the probability of carcass removal ----------
 
 # Analyze probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
-g2=glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
+g2=glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
            percent_developed_1km+ #1km urbanization extent
            (1|site_name), #site as random effect
          family = "binomial", #binomial distribution
@@ -125,8 +124,9 @@ plotResiduals(g4_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 # PART 3A: Probability of Scavenging ####
 #########################################
 
-# H1a - Hypothesis 2: Human visitation predicts scavenging rates ---------------------
-h1a <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+# H1a - Hypothesis 2: Urbanization + human visitation predicts scavenging rates ------
+h1a <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+              percent_developed_1km +
               human_visitors_per_day +
               (1|site_name), #site as random effect
             family = "binomial", #binomial distribution
@@ -139,8 +139,9 @@ testDispersion(h1a_res)
 plotResiduals(h1a_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1b - Hypothesis 3: Domestic dog visitation predicts scavenging rates ---------------------
-h1b <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+# H1b - Hypothesis 3: Urbanization and domestic dog visitation predicts scavenging rates ----
+h1b <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               percent_developed_1km +
                domestic_dog_visitors_per_day +
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
@@ -153,10 +154,10 @@ testDispersion(h1b_res)
 plotResiduals(h1b_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1c - Hypothesis 4: Land cover predicts scavenging rates ---------------------
-h1c <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+# H1c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ---------------------
+h1c <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
                percent_developed_1km + #1km urbanization extent
-               percent_agricultural_1km + #1km agricultural extent
+               percent_agricultural_3km + #3km agricultural extent
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1c) 
@@ -168,10 +169,10 @@ testDispersion(h1c_res)
 plotResiduals(h1c_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1d - Hypothesis 5: Urbanization and human visitation predict scavenging rates -----
-h1d <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+# H1d - Hypothesis 5: Urbanization and deployment period predicts scavenging rates -----
+h1d <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
                percent_developed_1km + #1km urbanization extent
-               human_visitors_per_day +
+               deployment_type_AM_PM +
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1d) 
@@ -183,9 +184,9 @@ testDispersion(h1d_res)
 plotResiduals(h1d_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1e - Hypothesis 6: Urbanization and domestic dog visitation predict scavenging rates -----
-h1e <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_developed_1km + #1km urbanization extent
+# H1e - Hypothesis 6: Deployment period and domestic dog visitation predict scavenging rates -----
+h1e <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               deployment_type_AM_PM +
                domestic_dog_visitors_per_day +
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
@@ -197,10 +198,11 @@ plot(h1e_res, rank = T)
 testDispersion(h1e_res)
 plotResiduals(h1e_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
-# H1f - Hypothesis 7: Agriculture and human visitation predict scavenging rates -----
-h1f <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_agricultural_1km + #1km urbanization extent
-               human_visitors_per_day +
+# H1f - Hypothesis 7: scavenger abundance predicts scavenging rates -----
+h1f <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               common_raven_adj +
+               american_crow_adj +
+               deer_mouse_adj +
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1f) 
@@ -212,25 +214,23 @@ testDispersion(h1f_res)
 plotResiduals(h1f_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1g - Hypothesis 8: Agriculture and domestic dog visitation predict scavenging rates -----
-h1g <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_agricultural_1km + #1km urbanization extent
-               domestic_dog_visitors_per_day +
+# H1g - Hypothesis 8: Scavenger species richness predicts scavenging rates -----
+h1g <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               richness +               
                (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1g) 
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1g) 
 
-# Check h1e assumptions with DHARMa package
+# Check h1g assumptions with DHARMa package
 h1g_res = simulateResiduals(h1g)
 plot(h1g_res, rank = T)
 testDispersion(h1g_res)
 plotResiduals(h1g_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1h - Hypothesis 9: Recreation (human visitation and domestic dog visitation) predict scavenging rates -----
-h1h <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
+# H1h - null model -----
+h1h <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               1 +               
                (1|site_name), #site as random effect
              family = "binomial", #binomial distribution
              data=carcass_level_summary);summary(h1h) 
@@ -241,120 +241,33 @@ plot(h1h_res, rank = T)
 testDispersion(h1h_res)
 plotResiduals(h1h_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
-# H1i - Hypothesis 10: Urbanization and recreation predict scavenging rates -----
-h1i <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_developed_1km + 
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1i) 
-
-# Check h1i assumptions with DHARMa package
-h1i_res = simulateResiduals(h1i)
-plot(h1i_res, rank = T)
-testDispersion(h1i_res)
-plotResiduals(h1i_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-# H1j - Hypothesis 11: Land cover and recreation predict scavenging rates -------------
-h1j <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_developed_1km + 
-               percent_agricultural_1km +
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1h) 
-
-# Check h1j assumptions with DHARMa package
-h1j_res = simulateResiduals(h1j)
-plot(h1j_res, rank = T)
-testDispersion(h1j_res)
-plotResiduals(h1j_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-# H1k - Hypothesis 12: Scavenger abundance predicts scavenging rates -------------
-h1k <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               common_raven_adj +
-               american_crow_adj +
-               deer_mouse_adj +
-               rat_adj +
-               domestic_dog_adj +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1k) 
-
-# Check h1k assumptions with DHARMa package
-h1k_res = simulateResiduals(h1k)
-plot(h1k_res, rank = T)
-testDispersion(h1k_res)
-plotResiduals(h1k_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-# H1l - Hypothesis 13: Scavenger species richness predicts scavenging rates -------------
-h1l <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-             richness +
-             (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1l) 
-
-# Check h1l assumptions with DHARMa package
-h1l_res = simulateResiduals(h1l)
-plot(h1l_res, rank = T)
-testDispersion(h1l_res)
-plotResiduals(h1l_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-# H1m - null model -------------
-h1m <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               1 +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1m) 
-
-# Check h1m assumptions with DHARMa package
-h1m_res = simulateResiduals(h1m)
-plot(h1m_res, rank = T)
-testDispersion(h1m_res)
-plotResiduals(h1m_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-
-
 # Compare Models: ####
 
-all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h, h1i, h1j, h1k, h1l, h1m),
+all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h),
                    modnames=(c("Urbanization (1km)",
-                               "Human Visitation",
-                               "Domestic Dog Visitation",
-                               "Urbanization (1km) + Agricultural (1km)",
                                "Urbanization (1km) + Human Visitation",
                                "Urbanization (1km) + Domestic Dog Visitation",
-                               "Agriculture (1km) + Human Visitation",
-                               "Agriculture (1km) + Domestic Dog Visitation",
-                               "Human Visitation + Domestic Dog Visitation",
-                               "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
-                               "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
-                               "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                               "Urbanization (1km) + Agricultural (1km)",
+                               "Urbanization (1km) + Deployment Type (Day/Night)",
+                               "Domestic Dog Visitation + Deployment Type (Day/Night)",
+                               "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
                                "Scavenger Species Richness",
                                "null")),
                    second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
-
-#Note: One model outperformed all other models (model H1g: Agricultural Extent (1km) and Domestic Dog Visitation). Lets take a look: 
-
-summary(h1g)
-
+view(all_scav_prob_models)
 
 ##############################################
 # PART 3B: Probability of Carcass Removal ####
 ##############################################
 
-# H2a - Hypothesis 2: Human visitation predicts scavenging rates ---------------------
-h2a <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               human_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2a) 
+# H2a - Hypothesis 2: Urbanization + human visitation predicts scavenging rates ------
+h2a <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km +
+                 human_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2a) 
 
 # Check h2a assumptions with DHARMa package
 h2a_res = simulateResiduals(h2a)
@@ -363,12 +276,13 @@ testDispersion(h2a_res)
 plotResiduals(h2a_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2b - Hypothesis 3: Domestic dog visitation predicts scavenging rates ---------------------
-h2b <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2b) 
+# H2b - Hypothesis 3: Urbanization and domestic dog visitation predicts scavenging rates ----
+h2b <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2b) 
 
 # Check h2b assumptions with DHARMa package
 h2b_res = simulateResiduals(h2b)
@@ -377,13 +291,13 @@ testDispersion(h2b_res)
 plotResiduals(h2b_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2c - Hypothesis 4: Land cover predicts scavenging rates ---------------------
-h2c <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_developed_1km + #1km urbanization extent
-               percent_agricultural_1km + #1km agricultural extent
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2c) 
+# H2c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ---------------------
+h2c <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km + #1km urbanization extent
+                 percent_agricultural_3km + #3km agricultural extent
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2c) 
 
 # Check h2c assumptions with DHARMa package
 h2c_res = simulateResiduals(h2c)
@@ -392,13 +306,13 @@ testDispersion(h2c_res)
 plotResiduals(h2c_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2d - Hypothesis 5: Urbanization and human visitation predict scavenging rates -----
-h2d <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_developed_1km + #1km urbanization extent
-               human_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2d) 
+# H2d - Hypothesis 5: Urbanization and deployment period predicts scavenging rates -----
+h2d <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2d) 
 
 # Check h2d assumptions with DHARMa package
 h2d_res = simulateResiduals(h2d)
@@ -407,13 +321,13 @@ testDispersion(h2d_res)
 plotResiduals(h2d_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2e - Hypothesis 6: Urbanization and domestic dog visitation predict scavenging rates -----
-h2e <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_developed_1km + #1km urbanization extent
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2e) 
+# H2e - Hypothesis 6: Deployment period and domestic dog visitation predict scavenging rates -----
+h2e <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 deployment_type_AM_PM +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2e) 
 
 # Check h2e assumptions with DHARMa package
 h2e_res = simulateResiduals(h2e)
@@ -421,13 +335,14 @@ plot(h2e_res, rank = T)
 testDispersion(h2e_res)
 plotResiduals(h2e_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
-# H2f - Hypothesis 7: Agriculture and human visitation predict scavenging rates -----
-h2f <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_agricultural_1km + #1km urbanization extent
-               human_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2f) 
+# H2f - Hypothesis 7: Scavenger abundance predicts scavenging rates -----
+h2f <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 common_raven_adj +
+                 american_crow_adj +
+                 deer_mouse_adj +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2f) 
 
 # Check h2f assumptions with DHARMa package
 h2f_res = simulateResiduals(h2f)
@@ -436,28 +351,26 @@ testDispersion(h2f_res)
 plotResiduals(h2f_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2g - Hypothesis 8: Agriculture and domestic dog visitation predict scavenging rates -----
-h2g <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_agricultural_1km + #1km urbanization extent
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2g) 
+# H2g - Hypothesis 8: Scavenger species richness predicts scavenging rates -----
+h2g <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 richness +               
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2g) 
 
-# Check h2e assumptions with DHARMa package
+# Check h2g assumptions with DHARMa package
 h2g_res = simulateResiduals(h2g)
 plot(h2g_res, rank = T)
 testDispersion(h2g_res)
 plotResiduals(h2g_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H2h - Hypothesis 9: Recreation (human visitation and domestic dog visitation) predict scavenging rates -----
-h2h <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2h) 
+# h2h - null model -----
+h2h <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 1 +               
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2h) 
 
 # Check h2h assumptions with DHARMa package
 h2h_res = simulateResiduals(h2h)
@@ -465,101 +378,16 @@ plot(h2h_res, rank = T)
 testDispersion(h2h_res)
 plotResiduals(h2h_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
-# H2i - Hypothesis 10: Urbanization and recreation predict scavenging rates -----
-h2i <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_developed_1km + 
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2i) 
-
-# Check h2i assumptions with DHARMa package
-h2i_res = simulateResiduals(h2i)
-plot(h2i_res, rank = T)
-testDispersion(h2i_res)
-plotResiduals(h2i_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-# H2j - Hypothesis 11: Land cover and recreation predict scavenging rates -------------
-h2j <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               percent_developed_1km + 
-               percent_agricultural_1km +
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2h) 
-
-# Check h2j assumptions with DHARMa package
-h2j_res = simulateResiduals(h2j)
-plot(h2j_res, rank = T)
-testDispersion(h2j_res)
-plotResiduals(h2j_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-# H2k - Hypothesis 12: Scavenger abundance predicts scavenging rates -------------
-h2k <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               common_raven_adj +
-               american_crow_adj +
-               deer_mouse_adj +
-               rat_adj +
-               domestic_dog_adj +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2k) 
-
-# Check h2i assumptions with DHARMa package
-h2k_res = simulateResiduals(h2k)
-plot(h2k_res, rank = T)
-testDispersion(h2k_res)
-plotResiduals(h2k_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-# H2l - Hypothesis 13: Scavenger species richness predicts scavenging rates -------------
-h2l <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               richness +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2l) 
-
-# Check h2l assumptions with DHARMa package
-h2l_res = simulateResiduals(h2l)
-plot(h2l_res, rank = T)
-testDispersion(h2l_res)
-plotResiduals(h2l_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
-# H2m - null model -------------
-h2m <- glmer(full_scav_prob~ #full_scav_prob (1/0) binary probability of carcass removal
-               1 +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h2m) 
-
-# Check h2m assumptions with DHARMa package
-h2m_res = simulateResiduals(h2m)
-plot(h2m_res, rank = T)
-testDispersion(h2m_res)
-plotResiduals(h2m_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
-
-
 # Compare Models: ####
 
-all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, 
-                                                h2f, h2g, h2h, h2i, h2j, 
-                                                h2k, h2l, h2m),
+all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, h2f, h2g, h2h),
                                modnames=(c("Urbanization (1km)",
-                                           "Human Visitation",
-                                           "Domestic Dog Visitation",
-                                           "Urbanization (1km) + Agricultural (1km)",
                                            "Urbanization (1km) + Human Visitation",
                                            "Urbanization (1km) + Domestic Dog Visitation",
-                                           "Agriculture (1km) + Human Visitation",
-                                           "Agriculture (1km) + Domestic Dog Visitation",
-                                           "Human Visitation + Domestic Dog Visitation",
-                                           "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
-                                           "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
-                                           "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                           "Urbanization (1km) + Agricultural (1km)",
+                                           "Urbanization (1km) + Deployment Type (Day/Night)",
+                                           "Domestic Dog Visitation + Deployment Type (Day/Night)",
+                                           "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
                                            "Scavenger Species Richness",
                                            "null")),
                                second.ord=F) %>% 
@@ -572,8 +400,9 @@ all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e,
 # PART 3C: Time Until First Scavenging Event ####
 #################################################
 
-# H3a - Hypothesis 2: Human visitation predicts scavenging rates ---------------------
+# H3a - Hypothesis 2: Urbanization + human visitation predicts scavenging rates --------
 h3a <- glmmTMB(hours_to_first_scavenging_event~ 
+                 percent_developed_1km +
                human_visitors_per_day +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
@@ -586,9 +415,10 @@ testDispersion(h3a_res)
 plotResiduals(h3a_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3b - Hypothesis 3: Domestic dog visitation predicts scavenging rates ---------------------
+# H3b - Hypothesis 3: Urbanization + domestic dog visitation predicts scavenging rates ---------------------
 h3b <- glmmTMB(hours_to_first_scavenging_event~ 
-               domestic_dog_visitors_per_day +
+               percent_developed_1km +
+                 domestic_dog_visitors_per_day +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3b) #dataframe with no-scavenge carcasses removed
@@ -600,10 +430,10 @@ testDispersion(h3b_res)
 plotResiduals(h3b_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3c - Hypothesis 4: Land cover predicts scavenging rates ---------------------
+# H3c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ----------------
 h3c <- glmmTMB(hours_to_first_scavenging_event~ 
                percent_developed_1km + #1km urbanization extent
-               percent_agricultural_1km + #1km agricultural extent
+               percent_agricultural_3km + #3km agricultural extent
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3c) #dataframe with no-scavenge carcasses removed
@@ -615,10 +445,10 @@ testDispersion(h3c_res)
 plotResiduals(h3c_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3d - Hypothesis 5: Urbanization and human visitation predict scavenging rates -----
+# H3d - Hypothesis 5: Urbanization and deployment period predicts scavenging rates -----
 h3d <- glmmTMB(hours_to_first_scavenging_event~ 
                percent_developed_1km + #1km urbanization extent
-               human_visitors_per_day +
+               deployment_type_AM_PM+
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3d) #dataframe with no-scavenge carcasses removed
@@ -630,9 +460,9 @@ testDispersion(h3d_res)
 plotResiduals(h3d_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3e - Hypothesis 6: Urbanization and domestic dog visitation predict scavenging rates -----
+# H3e - Hypothesis 6: Deployment period and domestic dog visitation predict scavenging rates -----
 h3e <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM + 
                domestic_dog_visitors_per_day +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
@@ -644,10 +474,11 @@ plot(h3e_res, rank = T)
 testDispersion(h3e_res)
 plotResiduals(h3e_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
-# H3f - Hypothesis 7: Agriculture and human visitation predict scavenging rates -----
+# H3f - Hypothesis 7: scavenger abundance predicts scavenging rates -----
 h3f <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_agricultural_1km + #1km urbanization extent
-               human_visitors_per_day +
+                 common_raven_adj +
+                 american_crow_adj +
+                 deer_mouse_adj +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3f) #dataframe with no-scavenge carcasses removed
@@ -659,10 +490,9 @@ testDispersion(h3f_res)
 plotResiduals(h3f_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
-# H3g - Hypothesis 8: Agriculture and domestic dog visitation predict scavenging rates -----
+# H3g - Hypothesis 8: Scavenger species richness predicts scavenging rates -----
 h3g <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_agricultural_1km + #1km urbanization extent
-               domestic_dog_visitors_per_day +
+               richness +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3g) #dataframe with no-scavenge carcasses removed
@@ -673,11 +503,9 @@ plot(h3g_res, rank = T)
 testDispersion(h3g_res)
 plotResiduals(h3g_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
-
-# H3h - Hypothesis 9: Recreation (human visitation and domestic dog visitation) predict scavenging rates -----
+# h3h - null model -----
 h3h <- glmmTMB(hours_to_first_scavenging_event~ 
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
+               1 +
                (1|site_name), #site as random effect
              family=Gamma(link = "log"), #gamma distribution with log link
              data=temporal_df);summary(h3h) #dataframe with no-scavenge carcasses removed
@@ -688,119 +516,34 @@ plot(h3h_res, rank = T)
 testDispersion(h3h_res)
 plotResiduals(h3h_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
-# H3i - Hypothesis 10: Urbanization and recreation predict scavenging rates -----
-h3i <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_developed_1km + 
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3i) #dataframe with no-scavenge carcasses removed
-
-# Check h3i assumptions with DHARMa package
-h3i_res = simulateResiduals(h3i)
-plot(h3i_res, rank = T)
-testDispersion(h3i_res)
-plotResiduals(h3i_res, temporal_df$site_name, xlab = "Site", main=NULL)
-
-
-# H3j - Hypothesis 11: Land cover and recreation predict scavenging rates -------------
-h3j <- glmmTMB(hours_to_first_scavenging_event~ 
-               percent_developed_1km + 
-               percent_agricultural_1km +
-               human_visitors_per_day +
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3h) #dataframe with no-scavenge carcasses removed
-
-# Check h3j assumptions with DHARMa package
-h3j_res = simulateResiduals(h3j)
-plot(h3j_res, rank = T)
-testDispersion(h3j_res)
-plotResiduals(h3j_res, temporal_df$site_name, xlab = "Site", main=NULL)
-
-# H3k - Hypothesis 12: Scavenger abundance predicts scavenging rates -------------
-h3k <- glmmTMB(hours_to_first_scavenging_event~ 
-               common_raven_adj +
-               american_crow_adj +
-               deer_mouse_adj +
-               rat_adj +
-               domestic_dog_adj +
-               (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3k) #dataframe with no-scavenge carcasses removed
-
-# Check h3k assumptions with DHARMa package
-h3k_res = simulateResiduals(h3k)
-plot(h3k_res, rank = T)
-testDispersion(h3k_res)
-plotResiduals(h3k_res, temporal_df$site_name, xlab = "Site", main=NULL)
-
-
-# H3l - Hypothesis 13: Scavenger species richness predicts scavenging rates -------------
-h3l <- glmmTMB(hours_to_first_scavenging_event~ 
-               richness +
-               (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3l) #dataframe with no-scavenge carcasses removed
-
-# Check h3l assumptions with DHARMa package
-h3l_res = simulateResiduals(h3l)
-plot(h3l_res, rank = T)
-testDispersion(h3l_res)
-plotResiduals(h3l_res, temporal_df$site_name, xlab = "Site", main=NULL)
-
-
-# H3m - null model -------------
-h3m <- glmmTMB(hours_to_first_scavenging_event~ 
-                 1 +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df);summary(h3m) #dataframe with no-scavenge carcasses removed
-
-# Check h3l assumptions with DHARMa package
-h3m_res = simulateResiduals(h3m)
-plot(h3m_res, rank = T)
-testDispersion(h3m_res)
-plotResiduals(h3m_res, temporal_df$site_name, xlab = "Site", main=NULL)
-
-
 
 # Compare Models: ####
 
 all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d, 
-                                              h3e, h3f, h3g, h3h, 
-                                              h3i, h3j, h3k, h3l, h3m),
+                                              h3e, h3f, h3g, h3h),
                                   modnames=(c("Urbanization (1km)",
-                                              "Human Visitation",
-                                              "Domestic Dog Visitation",
-                                              "Urbanization (1km) + Agricultural (1km)",
                                               "Urbanization (1km) + Human Visitation",
                                               "Urbanization (1km) + Domestic Dog Visitation",
-                                              "Agriculture (1km) + Human Visitation",
-                                              "Agriculture (1km) + Domestic Dog Visitation",
-                                              "Human Visitation + Domestic Dog Visitation",
-                                              "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
-                                              "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
-                                              "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                              "Urbanization (1km) + Agricultural (1km)",
+                                              "Urbanization (1km) + Deployment Type (Day/Night)",
+                                              "Domestic Dog Visitation + Deployment Type (Day/Night)",
+                                              "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
                                               "Scavenger Species Richness",
                                               "null")),
                                 second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
 
-#None of the models testing our hypotheses outperformed the null model. 
-
 #################################################
 # PART 3D: Time Until Carcass Removal ###########
 #################################################
 
-# H4a - Hypothesis 2: Human visitation predicts scavenging rates ---------------------
+# h4a - Hypothesis 2: Urbanization + human visitation predicts scavenging rates --------
 h4a <- glmmTMB(hours_to_full_scavenge~ 
+                 percent_developed_1km +
                  human_visitors_per_day +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4a) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4a) #dataframe with no-scavenge carcasses removed
 
 # Check h4a assumptions with DHARMa package
 h4a_res = simulateResiduals(h4a)
@@ -809,12 +552,13 @@ testDispersion(h4a_res)
 plotResiduals(h4a_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4b - Hypothesis 3: Domestic dog visitation predicts scavenging rates ---------------------
+# h4b - Hypothesis 3: Urbanization + domestic dog visitation predicts scavenging rates ---------------------
 h4b <- glmmTMB(hours_to_full_scavenge~ 
+                 percent_developed_1km +
                  domestic_dog_visitors_per_day +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4b) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4b) #dataframe with no-scavenge carcasses removed
 
 # Check h4b assumptions with DHARMa package
 h4b_res = simulateResiduals(h4b)
@@ -823,13 +567,13 @@ testDispersion(h4b_res)
 plotResiduals(h4b_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4c - Hypothesis 4: Land cover predicts scavenging rates ---------------------
+# h4c - Hypothesis 4: Urbanization + Agriculture predicts scavenging rates ----------------
 h4c <- glmmTMB(hours_to_full_scavenge~ 
                  percent_developed_1km + #1km urbanization extent
-                 percent_agricultural_1km + #1km agricultural extent
+                 percent_agricultural_3km + #3km agricultural extent
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4c) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4c) #dataframe with no-scavenge carcasses removed
 
 # Check h4c assumptions with DHARMa package
 h4c_res = simulateResiduals(h4c)
@@ -838,13 +582,13 @@ testDispersion(h4c_res)
 plotResiduals(h4c_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4d - Hypothesis 5: Urbanization and human visitation predict scavenging rates -----
+# h4d - Hypothesis 5: Urbanization and deployment period predicts scavenging rates -----
 h4d <- glmmTMB(hours_to_full_scavenge~ 
                  percent_developed_1km + #1km urbanization extent
-                 human_visitors_per_day +
+                 deployment_type_AM_PM+
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4d) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4d) #dataframe with no-scavenge carcasses removed
 
 # Check h4d assumptions with DHARMa package
 h4d_res = simulateResiduals(h4d)
@@ -853,13 +597,13 @@ testDispersion(h4d_res)
 plotResiduals(h4d_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4e - Hypothesis 6: Urbanization and domestic dog visitation predict scavenging rates -----
+# h4e - Hypothesis 6: Deployment period and domestic dog visitation predict scavenging rates -----
 h4e <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM + 
                  domestic_dog_visitors_per_day +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4e) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4e) #dataframe with no-scavenge carcasses removed
 
 # Check h4e assumptions with DHARMa package
 h4e_res = simulateResiduals(h4e)
@@ -867,13 +611,14 @@ plot(h4e_res, rank = T)
 testDispersion(h4e_res)
 plotResiduals(h4e_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
-# H4f - Hypothesis 7: Agriculture and human visitation predict scavenging rates -----
+# h4f - Hypothesis 7: scavenger abundance predicts scavenging rates -----
 h4f <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_agricultural_1km + #1km urbanization extent
-                 human_visitors_per_day +
+                 common_raven_adj +
+                 american_crow_adj +
+                 deer_mouse_adj +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4f) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4f) #dataframe with no-scavenge carcasses removed
 
 # Check h4f assumptions with DHARMa package
 h4f_res = simulateResiduals(h4f)
@@ -882,13 +627,12 @@ testDispersion(h4f_res)
 plotResiduals(h4f_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4g - Hypothesis 8: Agriculture and domestic dog visitation predict scavenging rates -----
+# h4g - Hypothesis 8: Scavenger species richness predicts scavenging rates -----
 h4g <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_agricultural_1km + #1km urbanization extent
-                 domestic_dog_visitors_per_day +
+                 richness +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4g) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4g) #dataframe with no-scavenge carcasses removed
 
 # Check h4e assumptions with DHARMa package
 h4g_res = simulateResiduals(h4g)
@@ -897,13 +641,12 @@ testDispersion(h4g_res)
 plotResiduals(h4g_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# H4h - Hypothesis 9: Recreation (human visitation and domestic dog visitation) predict scavenging rates -----
+# h4h - null model -----
 h4h <- glmmTMB(hours_to_full_scavenge~ 
-                 human_visitors_per_day +
-                 domestic_dog_visitors_per_day +
+                 1 +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4h) #dataframe with only complete carcass removal
+               data=temporal_df2);summary(h4h) #dataframe with no-scavenge carcasses removed
 
 # Check h4h assumptions with DHARMa package
 h4h_res = simulateResiduals(h4h)
@@ -911,113 +654,22 @@ plot(h4h_res, rank = T)
 testDispersion(h4h_res)
 plotResiduals(h4h_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
-# H4i - Hypothesis 10: Urbanization and recreation predict scavenging rates -----
-h4i <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_developed_1km + 
-                 human_visitors_per_day +
-                 domestic_dog_visitors_per_day +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4i) #dataframe with only complete carcass removal
-
-# Check h4i assumptions with DHARMa package
-h4i_res = simulateResiduals(h4i)
-plot(h4i_res, rank = T)
-testDispersion(h4i_res)
-plotResiduals(h4i_res, temporal_df2$site_name, xlab = "Site", main=NULL)
-
-
-# H4j - Hypothesis 11: Land cover and recreation predict scavenging rates -------------
-h4j <- glmmTMB(hours_to_full_scavenge~ 
-                 percent_developed_1km + 
-                 percent_agricultural_1km +
-                 human_visitors_per_day +
-                 domestic_dog_visitors_per_day +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4h) #dataframe with only complete carcass removal
-
-# Check h4j assumptions with DHARMa package
-h4j_res = simulateResiduals(h4j)
-plot(h4j_res, rank = T)
-testDispersion(h4j_res)
-plotResiduals(h4j_res, temporal_df2$site_name, xlab = "Site", main=NULL)
-
-# H4k - Hypothesis 12: Scavenger abundance predicts scavenging rates -------------
-h4k <- glmmTMB(hours_to_full_scavenge~ 
-                 common_raven_adj +
-                 american_crow_adj +
-                 deer_mouse_adj +
-                 rat_adj +
-                 domestic_dog_adj +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4k) #dataframe with only complete carcass removal
-
-# Check h4k assumptions with DHARMa package
-h4k_res = simulateResiduals(h4k)
-plot(h4k_res, rank = T)
-testDispersion(h4k_res)
-plotResiduals(h4k_res, temporal_df2$site_name, xlab = "Site", main=NULL)
-
-
-# H4l - Hypothesis 13: Scavenger species richness predicts scavenging rates -------------
-h4l <- glmmTMB(hours_to_full_scavenge~ 
-                 richness +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4l) #dataframe with only complete carcass removal
-
-# Check h4l assumptions with DHARMa package
-h4l_res = simulateResiduals(h4l)
-plot(h4l_res, rank = T)
-testDispersion(h4l_res)
-plotResiduals(h4l_res, temporal_df2$site_name, xlab = "Site", main=NULL)
-
-
-# H4m - null model -------------
-h4m <- glmmTMB(hours_to_full_scavenge~ 
-                 1 +
-                 (1|site_name), #site as random effect
-               family=Gamma(link = "log"), #gamma distribution with log link
-               data=temporal_df2);summary(h4m) #dataframe with only complete carcass removal
-
-# Check h4m assumptions with DHARMa package
-h4m_res = simulateResiduals(h4m)
-plot(h4m_res, rank = T)
-testDispersion(h4m_res)
-plotResiduals(h4m_res, temporal_df2$site_name, xlab = "Site", main=NULL)
-
-
 
 # Compare Models: ####
 
 all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d, 
-                                              h4e, h4f, h4g, h4h, 
-                                              h4i, h4j, h4k, h4l, h4m),
+                                              h4e, h4f, h4g, h4h),
                                 modnames=(c("Urbanization (1km)",
-                                            "Human Visitation",
-                                            "Domestic Dog Visitation",
-                                            "Urbanization (1km) + Agricultural (1km)",
                                             "Urbanization (1km) + Human Visitation",
                                             "Urbanization (1km) + Domestic Dog Visitation",
-                                            "Agriculture (1km) + Human Visitation",
-                                            "Agriculture (1km) + Domestic Dog Visitation",
-                                            "Human Visitation + Domestic Dog Visitation",
-                                            "Urbanization (1km) + Human Visitation + Domestic Dog Visitation",
-                                            "Urbanization (1km) + Agricultural (1km) + Human Visitation + Domestic Dog Visitation",
-                                            "Scavenger Abundance (Adj. MaxN Values: Common Raven + American Crow + Deer Mouse + Rat + Domestic Dog)",
+                                            "Urbanization (1km) + Agricultural (1km)",
+                                            "Urbanization (1km) + Deployment Type (Day/Night)",
+                                            "Domestic Dog Visitation + Deployment Type (Day/Night)",
+                                            "Scavenger Abundance (MaxN Values: Common Raven + American Crow + Deer Mouse)",
                                             "Scavenger Species Richness",
                                             "null")),
                                 second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
-
-selected_removal_time_models <- all_removal_time_models %>%
-  filter(Delta_AIC <= 2) %>% 
-  dplyr::select(c(1:3,6,7)); all_removal_time_models
-
-#None of the models testing our hypotheses outperformed the null model. 
-
 
 
 #################################################
