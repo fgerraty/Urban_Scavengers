@@ -145,11 +145,12 @@ urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") 
   left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
   replace(is.na(.), 0) %>% #Replace NAs with 0s
   dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
-
+#remove "Strawberry" from analysis because no scavengers present 
+  filter(site_name != "Strawberry") %>% 
 # Part 2E: generate diversity metrics for each site ------
   
   mutate(richness = specnumber(.[18:29]),
-         diversity = diversity(.[18:29]))
+         diversity = diversity(.[18:29])) 
 
 
 # Part 2F: Export as .csv in "processed data" folder --------------------------
@@ -212,8 +213,9 @@ carcass_level_summary <-
     #calculate time until full scavenge
     hours_to_full_scavenge = as.numeric( #turn difftime value to numeric
       difftime(full_scavenge_date_time, deployment_date_time, units = c("hours")))) %>% 
-  dplyr::select(-deployment_number, -camera_failure)  #remove irrelevant columns
-
+  dplyr::select(-deployment_number, -camera_failure) %>%   #remove irrelevant columns
+  #remove "Strawberry" from analysis because no scavengers present 
+  filter(site_name != "Strawberry")
 
 # Part 3B Export as .csv in "processed data" folder --------
 write_csv(carcass_level_summary, "data/processed/carcass_level_summary.csv")
@@ -254,7 +256,8 @@ adjusted_urban_scavengers_summary <- left_join(buffers, carcass_summary, by="sit
   left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
   replace(is.na(.), 0) %>% #Replace NAs with 0s
   dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
-  
+  #remove "Strawberry" from analysis because no scavengers present 
+  filter(site_name != "Strawberry") %>% 
 # Part 2E: generate diversity metrics for each site ------
 
 mutate(richness = specnumber(.[18:29]),
