@@ -11,14 +11,17 @@
 
 #Import .csvs from "processed data" folder ------------------------------------
 
-urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv")
+urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv") 
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>%    
   #Create new column "scav_prob" which classifies scavenging as 1/0 for each carcass (partially scavenged carcasses are classified as scavenged = 1)
   mutate(scav_prob = if_else(no_scavenge == TRUE, 0, 1),
          #Create new column "full_scav_prob" which classifies scavenging as 1/0 for each carcass that was fully scavenged AKA carcass removal)
-         full_scav_prob = if_else(no_scavenge == FALSE & partial_scavenge == FALSE, 1, 0),
-         site_name = as.factor(site_name)) 
+         full_scav_prob = if_else(no_scavenge == FALSE & 
+                                  partial_scavenge == FALSE, 1, 0),
+         site_name = as.factor(site_name)) %>% 
+  #bring environmental variables for univariate plots into DF
+  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km",  "domestic_dog_visitors_per_day")], by = c("site_name"))
 
 
 ############################################################################
@@ -887,70 +890,77 @@ dev.off()
 
 
 ##############################################################################
-# PART 5: Domestic Dog and Agricultural Effect on Carrion Processing Plot ####
+# PART 5: Domestic Dog and Urbanization Effect on Carrion Processing Plot ####
 ##############################################################################
 
 
-#Recreate model h1g from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
-h1g <- glmer(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               percent_agricultural_1km + #1km urbanization extent
-               domestic_dog_visitors_per_day +
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1g) 
+#Recreate model h1b from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
+h1b <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1b) 
 
 
 #Create dataframe for generating a line and error bar representing model g2
-h1g_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,6), 
-                    percent_agricultural_1km = rep(c(0,.1,.2,.3,.4,.5), each = 26),
+h1b_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,5), 
+                    percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 26),
                     site_name = "Blacks") #Choose random site (wont impact output)
 
 #predict probability of scavenging using the model
-h1g_plot$scav_prob <- predict(h1g,
-                              newdata=h1g_plot,
+h1b_plot$scav_prob <- predict(h1b,
+                              newdata=h1b_plot,
                               type="response", 
                               re.form=NA)#added extra step for mixed effects models
 
 #Code for generating confidence intervals for GLMER model with a logit link. 
 
 #predict mean values on link/logit scale
-h1g_plot$pred_scav_prob_link=predict(h1g,newdata=h1g_plot,re.form=NA,type="link")
+h1b_plot$pred_scav_prob_link=predict(h1b,newdata=h1b_plot,re.form=NA,type="link")
 #function for bootstrapping
-pf1 = function(fit) {   predict(fit, h1g_plot) } 
+pf1 = function(fit) {   predict(fit, h1b_plot) } 
 #bootstrap to estimate uncertainty in predictions
-bb=bootMer(h1g,nsim=1000,FUN=pf1,seed=999) 
+bb=bootMer(h1b,nsim=1000,FUN=pf1,seed=999) 
 #Calculate SEs from bootstrap samples on link scale
-h1g_plot$SE=apply(bb$t, 2, sd) 
+h1b_plot$SE=apply(bb$t, 2, sd) 
 #predicted mean + 1 SE on response scale
-h1g_plot$pSE=plogis(h1g_plot$pred_scav_prob_link+h1g_plot$SE) 
+h1b_plot$pSE=plogis(h1b_plot$pred_scav_prob_link+h1b_plot$SE) 
 # predicted mean - 1 SE on response scale
-h1g_plot$mSE=plogis(h1g_plot$pred_scav_prob_link-h1g_plot$SE) 
+h1b_plot$mSE=plogis(h1b_plot$pred_scav_prob_link-h1b_plot$SE) 
 
 
 
-#Turn percent_agricultural_1km variables into factors for plotting
-h1g_plot <- h1g_plot %>% 
-  mutate(percent_agricultural_1km = factor(percent_agricultural_1km, levels = c(.5,.4,.3,.2,.1,0)))
+#Turn percent_developed_1km variables into factors for plotting
+h1b_plot <- h1b_plot %>% 
+  mutate(percent_developed_1km = factor(percent_developed_1km))
 
 carcass_level_summary <- carcass_level_summary %>% 
-  mutate(percent_agricultural_1km = factor(percent_agricultural_1km, levels = c(.5,.4,.3,.2,.1,0)))
+  mutate(percent_developed_1km = factor(percent_developed_1km))
 
 
 #Generate ggplot
-dog_agriculture_plot <- ggplot(carcass_level_summary, 
+dog_urbanization_plot <- ggplot(carcass_level_summary, 
                aes(x=domestic_dog_visitors_per_day, y=scav_prob))+ 
   geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
-  geom_ribbon(data=h1g_plot,
+  geom_ribbon(data=h1b_plot,
               aes(x=domestic_dog_visitors_per_day,
-                  ymin=mSE,ymax=pSE, fill = percent_agricultural_1km),
+                  ymin=mSE,ymax=pSE, fill = percent_developed_1km),
               alpha=0.2,linetype=0)+
-  geom_line(data=h1g_plot,aes(x=domestic_dog_visitors_per_day,y=scav_prob, color = temp))+
+  geom_line(data=h1b_plot,aes(x=domestic_dog_visitors_per_day,
+                              y=scav_prob, 
+                              color = percent_developed_1km))+
   theme_few()+
-  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nAgricultural\n(1km)")+
-  scale_color_viridis_d(labels = c(50,40,30,20,10,0))+
+  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nUrbanized\n(1km)")+
+  scale_color_gradientn(colors = wes_palette("Zissou1", 
+                                             type = "discrete"), 
+                        name="Percent \nUrbanized \n(1km)")+
+  
   scale_fill_viridis_d(guide = "none")
 
-#Export high-quality figure of dog and agriculture plot
+dog_urbanization_plot
+
+#Export high-quality figure of dog and urbanization plot
 
 pdf("output/main_figures/best_univariate_model_plot.pdf", 
     width = 10, height = 6)

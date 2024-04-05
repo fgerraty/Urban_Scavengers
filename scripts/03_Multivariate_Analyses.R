@@ -27,8 +27,7 @@ akaike_adjusted_rsq <- function(DF) {
 }
 
 #Import dataset
-urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv") %>% 
-  filter(site_name != "Strawberry") #Remove strawberry beach from analysis b/c no scavenging assemblage
+urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv")
 
 
 # PART 1A: Set up PERMANOVA analysis -------------------------------------------
@@ -688,11 +687,10 @@ gtsave(selected_manyglm_summary, "output/supp_figures/MvGLM_summary_table.pdf")
 #WARNING: The following code overwrites objects previously created in parts 1 and 2 of this script. Do not run segments of this script out of order as it may influence analytical results and summary table outputs. 
 
 #Import dataset
-adjusted_urban_scavengers_summary <- read_csv("data/processed/adjusted_urban_scavengers_summary.csv") %>% 
-  filter(site_name != "Strawberry") #Remove strawberry beach from analysis b/c no scavenging assemblage
+adjusted_urban_scavengers_summary <- read_csv("data/processed/adjusted_urban_scavengers_summary.csv") 
 
 
-# PART 1A: Set up PERMANOVA analysis -------------------------------------------
+# PART 3A: Set up PERMANOVA analysis -------------------------------------------
 
 #set seed for reproducability
 set.seed(999) 
@@ -706,15 +704,8 @@ predictors <- adjusted_urban_scavengers_summary[,c(4:11)]
 #Generate Bray-Curtis distance matrix
 distance_matrix <- vegdist(scav_assemblage, method = "bray")
 
-# PART 1B: Generate and filter modeling suite ----------------------------------
 
-#Generate all possible first-order models for this set of predictors, which results in 256 possible models
-AllModels <- make_models(vars = c("percent_developed_1km", "percent_developed_3km", "percent_developed_5km", "percent_agricultural_1km", "percent_agricultural_3km", "percent_agricultural_5km", "human_visitors_per_day", "domestic_dog_visitors_per_day"))
-
-#Filter out models with high degree of collinearity (having a maximum value of VIF of 5 or more), leading to 64 possible non-collinear models
-NonCollinear <- filter_vif(all_forms = AllModels, env_data = predictors)
-
-# PART 1C: Fit and summarize PERMANOVA models ----------------------------------
+# PART 3B: Fit and summarize PERMANOVA models ----------------------------------
 
 #Fit the 64 non-collinear PERMANOVA models - uses the vegan adonis2() function
 Fitted <- fit_models(
@@ -732,9 +723,9 @@ Selected #take a look at output of 6 top models with delta AICc less than 2
 Summary <- akaike_adjusted_rsq(Selected)
 Summary #take a look at summary output of each predictor's adjusted r squared calculated using AIC and model averaging
 
-# PART 1D: Look at top models to ensure a good fit -----------------------------
+# PART 3C: Look at top models to ensure a good fit -----------------------------
 
-#Take a look at the eleven top models to see if they fit well
+#Take a look at the sixteen top models to see if they fit well
 top_model <- adonis2(distance_matrix ~ predictors$percent_developed_1km)
 top_model_2 <- adonis2(distance_matrix ~ predictors$percent_developed_3km)
 top_model_3 <- adonis2(distance_matrix ~ predictors$percent_developed_5km)
@@ -756,7 +747,7 @@ top_model_16 <- adonis2(distance_matrix ~ predictors$percent_developed_1km+predi
 top_model; top_model_2; top_model_3; top_model_4; top_model_5; top_model_6; top_model_7; top_model_8; top_model_9; top_model_10; top_model_11; top_model_12; top_model_13; top_model_14; top_model_15; top_model_16
 
 
-# PART 1E: Make publication-quality tables for export ----------------------------
+# PART 3D: Make publication-quality tables for export ----------------------------
 
 #Selected models table ####
 selected_models <- Selected %>% 
@@ -777,7 +768,7 @@ selected_models_summary_table_gt <- gt(selected_models)
 selected_models_summary <- 
   selected_models_summary_table_gt |>
   tab_header(
-    title = "PERMANOVA Top Models Summary (∆AICc <2) (Adjusted MaxN Values)"
+    title = "PERMANOVA Top Models Summary (∆AICc <2) (Sum MaxN Values)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -808,7 +799,7 @@ summarized_predictors_gt <- gt(summarized_predictors)
 PERMANOVA_predictors_summary <- 
   summarized_predictors_gt |>
   tab_header(
-    title = "PERMANOVA Top Predictors Summary (Adjusted MaxN Values)"
+    title = "PERMANOVA Top Predictors Summary (Sum MaxN Values)"
   ) |>
   cols_label(Predictor = md("**Predictor**"),
              Full_Akaike_Adjusted_RSq = md("**Aikake Adjusted Rsq**"),
@@ -843,7 +834,7 @@ all_fitted_models_gt <- gt(all_fitted_models)
 all_fitted_models_summary <- 
   all_fitted_models_gt |>
   tab_header(
-    title = "All Fitted PERMANOVA Models (Adjusted MaxN Values)"
+    title = "All Fitted PERMANOVA Models (Sum MaxN Values)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -864,7 +855,7 @@ gtsave(all_fitted_models_summary, "output/supp_figures/adjusted_PERMANOVA_all_mo
 
 #WARNING: The following code overwrites objects previously created in parts 1 and 2 of this script. Do not run segments of this script out of order as it may influence analytical results and summary table outputs. 
 
-# PART 2A: Set up manyglm analysis --------------------------------------------
+# PART 4A: Set up manyglm analysis --------------------------------------------
 
 #set seed for reproducability
 set.seed(99) 
@@ -878,7 +869,7 @@ boxplot(adjusted_urban_scavengers_summary[,18:29], horizontal = TRUE, las = 2, m
 #check mean-variance relationship
 meanvar.plot(scav_assemblage)
 
-# PART 2B: Create ManyGLM models for each of 64 models (including null model) tested in PERMANOVA approach (i.e. in the NonCollinear dataframe) -----------
+# PART 4B: Create ManyGLM models for each of 64 models (including null model) tested in PERMANOVA approach (i.e. in the NonCollinear dataframe) -----------
 
 
 f1 <- manyglm(scav_assemblage ~ adjusted_urban_scavengers_summary$percent_developed_1km, 
@@ -1181,7 +1172,7 @@ null <- manyglm(scav_assemblage ~ 1,
 
 
 
-# PART 2C: Compare models using AIC --------------------------------------------
+# PART 4C: Compare models using AIC --------------------------------------------
 
 # create summary table of model suite
 manyglm_summary_table <- data.frame (
@@ -1272,7 +1263,7 @@ selected_manyglm <- manyglm_summary_table %>%
   filter(AIC <= min(AIC)+2)
 
 
-# PART 2D: Take a look at the top models to see if they are a good fit and check assumptions ----------
+# PART 4D: Take a look at the top models to see if they are a good fit and check assumptions ----------
 
 #Top model (f12): percent_developed_1km + human_visitors_per_day
 anova.manyglm(f12, p.uni = "adjusted")
@@ -1282,7 +1273,7 @@ anova.manyglm(f12, p.uni = "adjusted")
 plot(f12) #Nope, a cloud of points. Looks good. 
 
 
-# PART 2E: Make publication-quality tables for export ----------------------------
+# PART 4E: Make publication-quality tables for export ----------------------------
 
 # All MvGLM models table####
 
@@ -1292,7 +1283,7 @@ manyglm_summary_table_gt <- gt(manyglm_summary_table)
 manyglm_summary <- 
   manyglm_summary_table_gt |>
   tab_header(
-    title = "All MvGLM Models (Adjusted MaxN Values)"
+    title = "All MvGLM Models (Sum MaxN Values)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
@@ -1313,7 +1304,7 @@ selected_manyglm_gt <- gt(selected_manyglm)
 selected_manyglm_summary <- 
   selected_manyglm_gt |>
   tab_header(
-    title = "MvGLM Top Models Summary (∆AIC <2) (Adjusted MaxN Values)"
+    title = "MvGLM Top Models Summary (∆AIC <2) (Sum MaxN Values)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
