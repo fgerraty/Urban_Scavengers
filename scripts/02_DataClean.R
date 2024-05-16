@@ -258,12 +258,96 @@ adjusted_urban_scavengers_summary <- left_join(buffers, carcass_summary, by="sit
   dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
   #remove "Strawberry" from analysis because no scavengers present 
   filter(site_name != "Strawberry") %>% 
-# Part 2E: generate diversity metrics for each site ------
+# Part 4C: generate diversity metrics for each site ------
 
 mutate(richness = specnumber(.[18:29]),
        diversity = diversity(.[18:29]))
 
 
-# Part 2E: Export as .csv in "processed data" folder --------------------------
+# Part 4D: Export as .csv in "processed data" folder --------------------------
 write_csv(adjusted_urban_scavengers_summary, "data/processed/adjusted_urban_scavengers_summary.csv")
 
+
+
+####################################################################
+# PART 5: Buffers / Visitation Predictors Plot #####################
+####################################################################
+
+#PART 5A: Plot buffers -----
+
+plot_df <- buffers %>% 
+  pivot_longer(cols = c(4:9), names_to = "class_buffer", values_to = "percent_land_cover")%>% 
+  mutate(type=if_else(class_buffer == "percent_developed_1km"|
+                        class_buffer == "percent_developed_3km"|
+                        class_buffer == "percent_developed_5km", "Urbanization", "Agriculture"),
+         scale = if_else(class_buffer == "percent_developed_1km"|
+                           class_buffer == "percent_agricultural_1km", "1km",
+                         if_else(class_buffer == "percent_agricultural_3km"|
+                                 class_buffer == "percent_developed_3km", "3km", "5km")),
+         #Reorder from upcoast to downcoast
+         site_name = factor(site_name, 
+                            levels = c("Waddell", "Scotts", "Bonny Doon", "Panther", "Laguna", "Four Mile", "Three Mile", "Strawberry", "Sand Plant", "Younger", "Natural Bridges", "Seabright 1", "Seabright 2", "Twin Lakes", "Blacks", "New Brighton", "Seacliff")))
+
+
+buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fill=scale))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  facet_wrap(nrow=2, facets = "type")+
+  labs(y = "% Land Cover Within Buffer Radius",
+       x = "", 
+       fill = "Buffer Width")+
+  theme_few()+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(size = 12, colour = "black",face="bold"),
+        legend.position = "inside", 
+        legend.position.inside = c(0.9, 0.85),
+        legend.box.background = element_rect(colour = "black", linewidth = 1))+
+  scale_fill_manual(values = c("#648FFF","#DC267F", "#FFB000"))
+
+
+buffer_plot
+
+#PART 5B: Plot visitation predictors ####
+
+plot_df2 <- urban_scavengers_summary %>% 
+  #Reorder from upcoast to downcoast
+  mutate(site_name = factor(site_name, 
+                     levels = c("Waddell", "Scotts", "Bonny Doon", "Panther", "Laguna", "Four Mile", "Three Mile", "Strawberry", "Sand Plant", "Younger", "Natural Bridges", "Seabright 1", "Seabright 2", "Twin Lakes", "Blacks", "New Brighton", "Seacliff"))) %>% 
+  pivot_longer(cols = c(human_visitors_per_day, domestic_dog_visitors_per_day), 
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = if_else(type == "human_visitors_per_day", "Human Visitation", "Domestic Dog Visitation"))
+
+
+
+buffer_plot2 <- ggplot(data=plot_df2, aes(x=site_name, y = count, fill = type))+
+  geom_bar(stat = "identity")+
+  facet_wrap(nrow=2, facets = "type", scales = "free_y")+
+  labs(y = "# Visitors Per Day",
+       x = "Site")+
+  theme_few()+
+  scale_fill_manual(values = c("#9055A2","goldenrod"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(size = 12, colour = "black",face="bold"),
+        legend.position = "none")
+
+
+buffer_plot2
+
+#PART 5C: Export as PDFs to "extra figures" folder to be combined in illustrator ####
+
+#Export as PDF
+pdf("output/extra_figures/buffers_plot.pdf", 
+    width = 7, height = 5)
+
+plot(buffer_plot)
+
+dev.off()
+
+#Export as PDF
+pdf("output/extra_figures/buffers_plot2.pdf", 
+    width = 7, height = 5)
+
+plot(buffer_plot2)
+
+dev.off()
