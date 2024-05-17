@@ -112,7 +112,7 @@ selected_models_summary_table_gt <- gt(selected_models)
 selected_models_summary <- 
   selected_models_summary_table_gt |>
   tab_header(
-    title = "PERMANOVA Top Models Summary (∆AICc <2)"
+    title = "PERMANOVA Top Models Summary (∆AICc <2) (Effort-Adjusted MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -143,7 +143,7 @@ summarized_predictors_gt <- gt(summarized_predictors)
 PERMANOVA_predictors_summary <- 
   summarized_predictors_gt |>
   tab_header(
-    title = "PERMANOVA Top Predictors Summary"
+    title = "PERMANOVA Top Predictors Summary (Effort-Adjusted MaxN)"
   ) |>
   cols_label(Predictor = md("**Predictor**"),
              Full_Akaike_Adjusted_RSq = md("**Aikake Adjusted Rsq**"),
@@ -178,7 +178,7 @@ all_fitted_models_gt <- gt(all_fitted_models)
 all_fitted_models_summary <- 
   all_fitted_models_gt |>
   tab_header(
-    title = "All Fitted PERMANOVA Models"
+    title = "All Fitted PERMANOVA Models (Effort-Adjusted MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -646,7 +646,7 @@ manyglm_summary_table_gt <- gt(manyglm_summary_table)
 manyglm_summary <- 
   manyglm_summary_table_gt |>
   tab_header(
-    title = "All MvGLM Models"
+    title = "All MvGLM Models (Effort-Adjusted MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
@@ -667,7 +667,7 @@ selected_manyglm_gt <- gt(selected_manyglm)
 selected_manyglm_summary <- 
   selected_manyglm_gt |>
   tab_header(
-    title = "MvGLM Top Models Summary (∆AIC <2)"
+    title = "MvGLM Top Models Summary (∆AIC <2) (Effort-Adjusted MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
@@ -768,7 +768,7 @@ selected_models_summary_table_gt <- gt(selected_models)
 selected_models_summary <- 
   selected_models_summary_table_gt |>
   tab_header(
-    title = "PERMANOVA Top Models Summary (∆AICc <2) (Sum MaxN Values)"
+    title = "PERMANOVA Top Models Summary (∆AICc <2) (Alternative MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -799,7 +799,7 @@ summarized_predictors_gt <- gt(summarized_predictors)
 PERMANOVA_predictors_summary <- 
   summarized_predictors_gt |>
   tab_header(
-    title = "PERMANOVA Top Predictors Summary (Sum MaxN Values)"
+    title = "PERMANOVA Top Predictors Summary (Alternative MaxN)"
   ) |>
   cols_label(Predictor = md("**Predictor**"),
              Full_Akaike_Adjusted_RSq = md("**Aikake Adjusted Rsq**"),
@@ -834,7 +834,7 @@ all_fitted_models_gt <- gt(all_fitted_models)
 all_fitted_models_summary <- 
   all_fitted_models_gt |>
   tab_header(
-    title = "All Fitted PERMANOVA Models (Sum MaxN Values)"
+    title = "All Fitted PERMANOVA Models (Alternative MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              AICc = md("**AICc**"),
@@ -1283,7 +1283,7 @@ manyglm_summary_table_gt <- gt(manyglm_summary_table)
 manyglm_summary <- 
   manyglm_summary_table_gt |>
   tab_header(
-    title = "All MvGLM Models (Sum MaxN Values)"
+    title = "All MvGLM Models (Alternative MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
@@ -1304,7 +1304,7 @@ selected_manyglm_gt <- gt(selected_manyglm)
 selected_manyglm_summary <- 
   selected_manyglm_gt |>
   tab_header(
-    title = "MvGLM Top Models Summary (∆AIC <2) (Sum MaxN Values)"
+    title = "MvGLM Top Models Summary (∆AIC <2) (Alternative MaxN)"
   ) |>
   cols_label(model_terms = md("**Model terms**"),
              df = md("**df**"),
