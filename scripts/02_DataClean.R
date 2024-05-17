@@ -302,7 +302,7 @@ buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fil
         legend.position = "inside", 
         legend.position.inside = c(0.9, 0.85),
         legend.box.background = element_rect(colour = "black", linewidth = 1))+
-  scale_fill_manual(values = c("#648FFF","#DC267F", "#FFB000"))
+  scale_fill_manual(values = c("#71c7ec","#189ad3", "#005073"))
 
 
 buffer_plot
