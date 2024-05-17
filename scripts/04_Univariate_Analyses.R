@@ -269,7 +269,6 @@ all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h
                                "null")),
                    second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
-view(all_scav_prob_models)
 
 ##############################################
 # PART 3B: Probability of Carcass Removal ####

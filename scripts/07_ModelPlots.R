@@ -970,7 +970,7 @@ dog_urbanization_plot
 #Export high-quality figure of dog and urbanization plot
 
 pdf("output/extra_figures/dog_urbanization_glmm.pdf", 
-    width = 10, height = 6)
+    width = 8, height = 4.5)
 
 plot(dog_urbanization_plot)
 
@@ -1052,7 +1052,7 @@ urbanization_period_plot1
 #Export high-quality figure of plot
 
 pdf("output/extra_figures/urbanization_period_glmm1.pdf", 
-    width = 10, height = 6)
+    width = 8, height = 4.5)
 
 plot(urbanization_period_plot1)
 
@@ -1129,7 +1129,7 @@ urbanization_period_plot2
 #Export high-quality figure of plot
 
 pdf("output/extra_figures/urbanization_period_glmm2.pdf", 
-    width = 10, height = 6)
+    width = 8, height = 4.5)
 
 plot(urbanization_period_plot2)
 
