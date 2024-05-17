@@ -32,9 +32,9 @@ carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>
   mutate(site_name = factor(site_name)) 
 
 
-##################################################################################
-# PART 2: Does Urbanization Influence Carrion Processing Metrics? ################
-##################################################################################
+########################################################################################
+# PART 2: Does Urbanization Alone Influence Carrion Processing Metrics? ################
+########################################################################################
 
 # PART 2A: Analyze deployment data for the probability of any scavenging ----------
 
@@ -226,22 +226,37 @@ testDispersion(h1g_res)
 plotResiduals(h1g_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# H1h - null model -----
+# H1h - Hypothesis 9: Deployment period and human visitation predict scavenging rates -----
 h1h <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
-               1 +               
-               (1|site_name), #site as random effect
-             family = "binomial", #binomial distribution
-             data=carcass_level_summary);summary(h1h) 
+                 deployment_type_AM_PM +
+                 human_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1h) 
 
-# Check h1h assumptions with DHARMa package
+# Check h1e assumptions with DHARMa package
 h1h_res = simulateResiduals(h1h)
 plot(h1h_res, rank = T)
 testDispersion(h1h_res)
 plotResiduals(h1h_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
+
+# H1i - null model -----
+h1i <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+               1 +               
+               (1|site_name), #site as random effect
+             family = "binomial", #binomial distribution
+             data=carcass_level_summary);summary(h1i) 
+
+# Check h1h assumptions with DHARMa package
+h1i_res = simulateResiduals(h1i)
+plot(h1i_res, rank = T)
+testDispersion(h1i_res)
+plotResiduals(h1i_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
+
 # Compare Models: ####
 
-all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h),
+all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h1g, h1h, h1i),
                    modnames=(c("Urbanization (1km)",
                                "Urbanization (1km) + Human Visitation",
                                "Urbanization (1km) + Domestic Dog Visitation***",
@@ -250,6 +265,7 @@ all_scav_prob_models <- aictab(cand.set=list(g1, h1a, h1b, h1c, h1d, h1e, h1f, h
                                "Domestic Dog Visitation* + Deployment Type (Day/Night)",
                                "Scavenger Abundance (Common Raven MaxN* + American Crow MaxN* + Deer Mouse MaxN)",
                                "Scavenger Species Richness",
+                               "Human Visitation + Deployment Type (Day/Night)",
                                "null")),
                    second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
@@ -363,22 +379,37 @@ testDispersion(h2g_res)
 plotResiduals(h2g_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
 
-# h2h - null model -----
+# H2h - Hypothesis 9: Deployment period and human visitation predict scavenging rates -----
 h2h <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
-                 1 +               
+                 deployment_type_AM_PM +
+                 human_visitors_per_day +
                  (1|site_name), #site as random effect
                family = "binomial", #binomial distribution
                data=carcass_level_summary);summary(h2h) 
 
-# Check h2h assumptions with DHARMa package
+# Check h2e assumptions with DHARMa package
 h2h_res = simulateResiduals(h2h)
 plot(h2h_res, rank = T)
 testDispersion(h2h_res)
 plotResiduals(h2h_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
 
+
+# h2i - null model -----
+h2i <- glmmTMB(full_scav_prob~ #full_scav_prob (1/0) binary probability of any scavenging activity
+                 1 +               
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h2i) 
+
+# Check h2h assumptions with DHARMa package
+h2i_res = simulateResiduals(h2h)
+plot(h2i_res, rank = T)
+testDispersion(h2i_res)
+plotResiduals(h2i_res, carcass_level_summary$site_name, xlab = "Site", main=NULL)
+
 # Compare Models: ####
 
-all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, h2f, h2g, h2h),
+all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, h2f, h2g, h2h, h2i),
                                modnames=(c("Urbanization (1km)",
                                            "Urbanization (1km) + Human Visitation",
                                            "Urbanization (1km) + Domestic Dog Visitation",
@@ -387,6 +418,7 @@ all_removal_prob_models <- aictab(cand.set=list(g2, h2a, h2b, h2c, h2d, h2e, h2f
                                            "Domestic Dog Visitation + Deployment Type (Day/Night)",
                                            "Scavenger Abundance (Common Raven MaxN* + American Crow MaxN + Deer Mouse MaxN)",
                                            "Scavenger Species Richness",
+                                           "Human Visitation + Deployment Type (Day/Night)",
                                            "null")),
                                second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
@@ -501,12 +533,13 @@ plot(h3g_res, rank = T)
 testDispersion(h3g_res)
 plotResiduals(h3g_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
-# h3h - null model -----
+# H3h - Hypothesis 6: Deployment period and human visitation predict scavenging rates -----
 h3h <- glmmTMB(hours_to_first_scavenging_event~ 
-               1 +
-               (1|site_name), #site as random effect
-             family=Gamma(link = "log"), #gamma distribution with log link
-             data=temporal_df);summary(h3h) #dataframe with no-scavenge carcasses removed
+                 deployment_type_AM_PM + 
+                 human_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df);summary(h3h) #dataframe with no-scavenge carcasses removed
 
 # Check h3h assumptions with DHARMa package
 h3h_res = simulateResiduals(h3h)
@@ -515,10 +548,24 @@ testDispersion(h3h_res)
 plotResiduals(h3h_res, temporal_df$site_name, xlab = "Site", main=NULL)
 
 
+# h3i - null model -----
+h3i <- glmmTMB(hours_to_first_scavenging_event~ 
+               1 +
+               (1|site_name), #site as random effect
+             family=Gamma(link = "log"), #gamma distribution with log link
+             data=temporal_df);summary(h3i) #dataframe with no-scavenge carcasses removed
+
+# Check h3i assumptions with DHARMa package
+h3i_res = simulateResiduals(h3i)
+plot(h3i_res, rank = T)
+testDispersion(h3i_res)
+plotResiduals(h3i_res, temporal_df$site_name, xlab = "Site", main=NULL)
+
+
 # Compare Models: ####
 
 all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d, 
-                                              h3e, h3f, h3g, h3h),
+                                              h3e, h3f, h3g, h3h, h3i),
                                   modnames=(c("Urbanization (1km)",
                                               "Urbanization (1km) + Human Visitation",
                                               "Urbanization (1km) + Domestic Dog Visitation",
@@ -527,6 +574,7 @@ all_first_scav_models <- aictab(cand.set=list(g3, h3a, h3b, h3c, h3d,
                                               "Domestic Dog Visitation + Deployment Type (Day/Night)***",
                                               "Scavenger Abundance (Common Raven MaxN + American Crow MaxN + Deer Mouse MaxN)",
                                               "Scavenger Species Richness",
+                                              "Human Visitation + Deployment Type (Day/Night)***",
                                               "null")),
                                 second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
@@ -639,9 +687,10 @@ testDispersion(h4g_res)
 plotResiduals(h4g_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
-# h4h - null model -----
+# h4h - Hypothesis 9: Deployment period and human visitation predict scavenging rates -----
 h4h <- glmmTMB(hours_to_full_scavenge~ 
-                 1 +
+                 deployment_type_AM_PM + 
+                 human_visitors_per_day +
                  (1|site_name), #site as random effect
                family=Gamma(link = "log"), #gamma distribution with log link
                data=temporal_df2);summary(h4h) #dataframe with no-scavenge carcasses removed
@@ -653,10 +702,24 @@ testDispersion(h4h_res)
 plotResiduals(h4h_res, temporal_df2$site_name, xlab = "Site", main=NULL)
 
 
+# h4i - null model -----
+h4i <- glmmTMB(hours_to_full_scavenge~ 
+                 1 +
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df2);summary(h4i) #dataframe with no-scavenge carcasses removed
+
+# Check h4i assumptions with DHARMa package
+h4i_res = simulateResiduals(h4i)
+plot(h4i_res, rank = T)
+testDispersion(h4i_res)
+plotResiduals(h4i_res, temporal_df2$site_name, xlab = "Site", main=NULL)
+
+
 # Compare Models: ####
 
 all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d, 
-                                              h4e, h4f, h4g, h4h),
+                                              h4e, h4f, h4g, h4h, h4i),
                                 modnames=(c("Urbanization (1km)",
                                             "Urbanization (1km) + Human Visitation",
                                             "Urbanization (1km) + Domestic Dog Visitation",
@@ -665,6 +728,7 @@ all_removal_time_models <- aictab(cand.set=list(g4, h4a, h4b, h4c, h4d,
                                             "Domestic Dog Visitation + Deployment Type (Day/Night)***",
                                             "Scavenger Abundance (Common Raven MaxN + American Crow MaxN + Deer Mouse MaxN)",
                                             "Scavenger Species Richness",
+                                            "Human Visitation + Deployment Type (Day/Night)***",
                                             "null")),
                                 second.ord=F) %>% 
   mutate(across(c('AIC', 'Delta_AIC', "ModelLik", "AICWt", "LL", "Cum.Wt"), round, digits = 3))
