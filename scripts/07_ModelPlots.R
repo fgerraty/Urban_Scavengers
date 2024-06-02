@@ -978,12 +978,92 @@ dev.off()
 
 
 
+
+
 ##############################################################################
-# PART 6: Time of Day and Urbanization Effect on Carrion Processing Plot #####
+# PART 6: Domestic Dog and Diel Period Carrion Processing Plot ###############
+##############################################################################
+
+
+#Recreate model h1e from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
+
+h1e <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+                 deployment_type_AM_PM +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1e) 
+
+
+#Create dataframe for generating a line and error bar representing model h1e
+h1e_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,2), 
+                    deployment_type_AM_PM = rep(c("day", "night"), each = 26),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h1e_plot$scav_prob <- predict(h1e,
+                              newdata=h1e_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a logit link. 
+
+#predict mean values on link/logit scale
+h1e_plot$pred_scav_prob_link=predict(h1e,newdata=h1e_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h1e_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h1e,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h1e_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h1e_plot$pSE=plogis(h1e_plot$pred_scav_prob_link+h1e_plot$SE) 
+# predicted mean - 1 SE on response scale
+h1e_plot$mSE=plogis(h1e_plot$pred_scav_prob_link-h1e_plot$SE) 
+
+
+#Generate ggplot
+dog_period_plot <- ggplot(carcass_level_summary, 
+                          aes(x=domestic_dog_visitors_per_day, 
+                              y=scav_prob, 
+                              color = deployment_type_AM_PM))+ 
+  geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
+  geom_ribbon(data=h1e_plot,
+              aes(x=domestic_dog_visitors_per_day,
+                  ymin=mSE,ymax=pSE, fill = deployment_type_AM_PM),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h1e_plot,aes(x=domestic_dog_visitors_per_day,
+                              y=scav_prob, 
+                              color = deployment_type_AM_PM))+
+  theme_few()+
+  labs(y = "Probability of Carcass Scavenging", 
+       x="Domestic Dog Visitation (# recordings/day)", 
+       color = "Deployment\nType",
+       fill = "Deployment\nType",)+
+  scale_color_manual(values = c("#FFB921","#003f7d"),
+                     labels = c("Day", "Night"))+
+  scale_fill_manual(values = c("#FFB921","#003f7d"),
+                    labels = c("Day", "Night"))
+
+dog_period_plot
+
+
+#Export high-quality figure of dog and diel period plot
+
+pdf("output/supp_figures/dog_period_glmm.pdf", 
+    width = 8, height = 4.5)
+
+plot(dog_period_plot)
+
+dev.off()
+
+
+##############################################################################
+# PART 7: Time of Day and Urbanization Effect on Carrion Processing Plot #####
 ##############################################################################
 
 ##############################################
-# PART 6A: Time to First Scavenging Event ####
+# PART 7A: Time to First Scavenging Event ####
 ##############################################
 
 #Recreate model h3d from "04_Univariate_Analyses.R", analyzing the time to first stavenging event using using 1km urbanization buffer and deployment time (day/night) with a mixed-effects gamma regression 
@@ -1060,7 +1140,7 @@ dev.off()
 
 
 ##############################################
-# PART 6B: Time to Carcass Removal ###########
+# PART 7B: Time to Carcass Removal ###########
 ##############################################
 
 
