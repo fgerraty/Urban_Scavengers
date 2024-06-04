@@ -17,9 +17,8 @@ set.seed(99)
 #sites
 sites <- urban_scavengers_summary[,1]
 
-#scav_assemblage
-scav_assemblage <- urban_scavengers_summary[,18:29]
-
+#scav_assemblage (all of the scavenger species and their maxN values, divided by the number of fish deployed at each site)
+scav_assemblage <- data.frame(urban_scavengers_summary[,18:29]/urban_scavengers_summary$n_fish_deployed)
 
 nMDS <- metaMDS(scav_assemblage, k=2, trymax = 1000, maxit = 10000)
 #Check stress (less than 0.1 is great)
@@ -30,14 +29,14 @@ nMDS_coords <- nMDS$points
 #combine nMDS coordinates with site name
 nMDS_coords <- cbind(sites, nMDS_coords)
 
-#Add site name, percent_developed_1km, and human_visitors_per_day (the best predictor from PERMANOVA analysis) to nMDS_coords dataframe
+#Add site name, percent_developed_1km, and human_visitors_per_day (the best predictor from MvGLM analysis) to nMDS_coords dataframe
 nMDS_coords <- left_join(nMDS_coords, urban_scavengers_summary[,c(1,4)]) %>% 
   mutate(percent_urbanized_1km=percent_developed_1km*100)
 
 
 
 #create environmental fit df to test against
-envirofit_df <- cbind(scav_assemblage, percent_urbanized_1km = urban_scavengers_summary$percent_developed_1km*100, human_visitation = urban_scavengers_summary$human_visitors_per_day)
+envirofit_df <- cbind(scav_assemblage, percent_urbanized_1km = urban_scavengers_summary$percent_developed_1km*100, domestic_dog_visitation = urban_scavengers_summary$domestic_dog_visitors_per_day)
 
 
 #Determine species driving divergence in ordination space
@@ -53,11 +52,11 @@ envirofit_coords <- cbind(envirofit_coords, species = rownames(envirofit_coords)
   filter(species == "american_crow"|
            species == "deer_mouse"|
            species == "percent_urbanized_1km" |
-           species == "human_visitation") 
+           species == "domestic_dog_visitation") 
 
 envirofit_coords <- envirofit_coords %>% 
   mutate(name = c("American Crow **", "Deer Mouse ***", 
-                  "Percent Urbanized (1km) ***", "Human Visitation *"),
+                  "Percent Urbanized (1km) ***", "Domestic Dog Visitation *"),
          pal = c("grey", "grey", "black", "black"),
          y_shift = c(0, .06, -.07, -.05), 
          x_shift = c(.25, 0, 0.1, -.1))
@@ -89,7 +88,7 @@ plot1 <- ggplot(data=nMDS_coords, aes(x=MDS1, y=MDS2, color = percent_urbanized_
         panel.border = element_rect(colour = "black", fill=NA, linewidth=1),
         legend.position=c(.07,.815),
         legend.background = element_rect(linewidth=.75, colour = "black"))+
-  ylim(c(-1.1, 1.1))
+  ylim(c(-1.2, 1.15))
 
 plot1
 

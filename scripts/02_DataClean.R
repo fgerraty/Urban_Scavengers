@@ -95,11 +95,11 @@ scav_summary <- right_join(scav_data,
   dplyr::select(site_name, deployment_number, species, count) %>% #Keep relevant columns
   group_by(site_name, species) %>% 
   #Calculate maximum number of confirmed individuals per species/site combination
-  summarise(maxN = max(count)) %>% 
+  summarise(maxN = max(count), .groups = "drop") %>% 
   #Pivot wider for data export and community analyses
   pivot_wider(names_from = species, values_from = maxN, values_fill = 0)
 
-.groups = "drop"
+
 
 
 
@@ -110,6 +110,8 @@ disturbance_summary <- inner_join(scav_data,
                                   deployments[,c("site_name", "deployment_number", "sd_number")], 
                                   by=c("deployment_number", "sd_number"), 
                                   relationship = "many-to-many") %>% 
+  #convert "domestic dog visitors" value to TRUE for dog scavenging events
+  mutate(domestic_dog_visitors = if_else(!is.na(domestic_dog), TRUE, domestic_dog_visitors)) %>% 
   #select relevant columns for summary
   dplyr::select(site_name, deployment_number, date_time, human_visitors, domestic_dog_visitors) %>% 
 
@@ -130,9 +132,10 @@ disturbance_summary <- inner_join(scav_data,
 #then ungroup deployment number to lump disturbance level from all deployments together
   ungroup(deployment_number) %>% 
   summarise(human_visitors_per_day = sum(human_visitors)/sum(deployment_length_days),
-    domestic_dog_visitors_per_day = sum(domestic_dog_visitors)/sum(deployment_length_days))
+    domestic_dog_visitors_per_day = sum(domestic_dog_visitors)/sum(deployment_length_days),
+    .groups = "drop")
 
-.groups = "drop"
+
 
 
 # Part 2D: combine summaries into final site-level dataset used for analyses ------
@@ -141,13 +144,16 @@ urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") 
   left_join(., scav_summary, by=c("site_name")) %>% 
   left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
   replace(is.na(.), 0) %>% #Replace NAs with 0s
-  filter(site_name != "Strawberry") %>%  #remove "Strawberry" from analysis because no scavengers present
-  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum)
-
-
+  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
+#remove "Strawberry" from analysis because no scavengers present 
+  filter(site_name != "Strawberry") %>% 
+# Part 2E: generate diversity metrics for each site ------
   
+  mutate(richness = specnumber(.[18:29]),
+         diversity = diversity(.[18:29])) 
 
-# Part 2E: Export as .csv in "processed data" folder --------------------------
+
+# Part 2F: Export as .csv in "processed data" folder --------------------------
 write_csv(urban_scavengers_summary, "data/processed/urban_scavengers_summary.csv")
 
 
@@ -207,17 +213,141 @@ carcass_level_summary <-
     #calculate time until full scavenge
     hours_to_full_scavenge = as.numeric( #turn difftime value to numeric
       difftime(full_scavenge_date_time, deployment_date_time, units = c("hours")))) %>% 
-  
-#bring 1km urbanization level into dataframe
-    left_join(., buffers[,c("site_name", "percent_developed_1km")], by = c("site_name")) %>% 
-  dplyr::select(-deployment_number, -camera_failure) %>%  #remove irrelevant columns
-
-
-#remove "Strawberry" from analysis because no scavengers present 
-
+  dplyr::select(-deployment_number, -camera_failure) %>%   #remove irrelevant columns
+  #remove "Strawberry" from analysis because no scavengers present 
   filter(site_name != "Strawberry")
-
 
 # Part 3B Export as .csv in "processed data" folder --------
 write_csv(carcass_level_summary, "data/processed/carcass_level_summary.csv")
 
+
+
+####################################################################
+# PART 4: Adjusted Site-Level Summary With Sum MaxN ################
+####################################################################
+
+# Part 4A: summarize scavenging assemblage by site with the sum of MaxN values from each 48-hour deployment --------------
+scav_summary_2 <- right_join(scav_data, 
+                           deployments[,c("site_name", "deployment_number", "sd_number")], 
+                           by=c("deployment_number", "sd_number"),
+                           relationship = "many-to-many") %>% 
+  pivot_longer(cols = deer_mouse:domestic_cat, #pivot longer
+               names_to = "species",
+               values_to = "count") %>%
+  filter(!is.na(count)) %>% #Drop 0 values 
+  #Select only scavengers / scavenging events
+  filter(partial_scavenge == "TRUE" | 
+           full_scavenge_carcass_removal == "TRUE") %>% 
+  dplyr::select(site_name, deployment_number, species, count) %>% #Keep relevant columns
+  #Calculate maximum number of confirmed individuals per site/deployment/species combination
+  group_by(site_name, deployment_number, species) %>% 
+  summarise(maxN = max(count), .groups = "drop") %>% 
+  #Calculate sum of MaxN values per site/species combination
+  group_by(site_name, species) %>% 
+  summarise(sum_maxN = sum(maxN), .groups = "drop") %>% 
+  #Pivot wider for data export and community analyses
+  pivot_wider(names_from = species, values_from = sum_maxN, values_fill = 0)
+
+
+# Part 4B: combine summaries into site-level dataset used for supplemental analyses ------
+
+adjusted_urban_scavengers_summary <- left_join(buffers, carcass_summary, by="site_name") %>% 
+  left_join(., scav_summary_2, by=c("site_name")) %>% 
+  left_join(., disturbance_summary[,c("site_name","human_visitors_per_day", "domestic_dog_visitors_per_day")], by=c("site_name")) %>% 
+  replace(is.na(.), 0) %>% #Replace NAs with 0s
+  dplyr::select(site_name:percent_agricultural_5km, human_visitors_per_day, domestic_dog_visitors_per_day, n_fish_deployed:virginia_opossum) %>% 
+  #remove "Strawberry" from analysis because no scavengers present 
+  filter(site_name != "Strawberry") %>% 
+# Part 4C: generate diversity metrics for each site ------
+
+mutate(richness = specnumber(.[18:29]),
+       diversity = diversity(.[18:29]))
+
+
+# Part 4D: Export as .csv in "processed data" folder --------------------------
+write_csv(adjusted_urban_scavengers_summary, "data/processed/adjusted_urban_scavengers_summary.csv")
+
+
+
+####################################################################
+# PART 5: Buffers / Visitation Predictors Plot #####################
+####################################################################
+
+#PART 5A: Plot buffers -----
+
+plot_df <- buffers %>% 
+  pivot_longer(cols = c(4:9), names_to = "class_buffer", values_to = "percent_land_cover")%>% 
+  mutate(type=if_else(class_buffer == "percent_developed_1km"|
+                        class_buffer == "percent_developed_3km"|
+                        class_buffer == "percent_developed_5km", "Urbanization", "Agriculture"),
+         scale = if_else(class_buffer == "percent_developed_1km"|
+                           class_buffer == "percent_agricultural_1km", "1km",
+                         if_else(class_buffer == "percent_agricultural_3km"|
+                                 class_buffer == "percent_developed_3km", "3km", "5km")),
+         #Reorder from upcoast to downcoast
+         site_name = factor(site_name, 
+                            levels = c("Waddell", "Scotts", "Bonny Doon", "Panther", "Laguna", "Four Mile", "Three Mile", "Strawberry", "Sand Plant", "Younger", "Natural Bridges", "Seabright 1", "Seabright 2", "Twin Lakes", "Blacks", "New Brighton", "Seacliff")))
+
+
+buffer_plot <- ggplot(data=plot_df, aes(x=site_name, y = percent_land_cover, fill=scale))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  facet_wrap(nrow=2, facets = "type")+
+  labs(y = "% Land Cover Within Buffer Radius",
+       x = "", 
+       fill = "Buffer Width")+
+  theme_few()+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(size = 12, colour = "black",face="bold"),
+        legend.position = "inside", 
+        legend.position.inside = c(0.9, 0.85),
+        legend.box.background = element_rect(colour = "black", linewidth = 1))+
+  scale_fill_manual(values = c("#71c7ec","#189ad3", "#005073"))
+
+
+buffer_plot
+
+#PART 5B: Plot visitation predictors ####
+
+plot_df2 <- urban_scavengers_summary %>% 
+  #Reorder from upcoast to downcoast
+  mutate(site_name = factor(site_name, 
+                     levels = c("Waddell", "Scotts", "Bonny Doon", "Panther", "Laguna", "Four Mile", "Three Mile", "Strawberry", "Sand Plant", "Younger", "Natural Bridges", "Seabright 1", "Seabright 2", "Twin Lakes", "Blacks", "New Brighton", "Seacliff"))) %>% 
+  pivot_longer(cols = c(human_visitors_per_day, domestic_dog_visitors_per_day), 
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = if_else(type == "human_visitors_per_day", "Human Visitation", "Domestic Dog Visitation"))
+
+
+
+buffer_plot2 <- ggplot(data=plot_df2, aes(x=site_name, y = count, fill = type))+
+  geom_bar(stat = "identity")+
+  facet_wrap(nrow=2, facets = "type", scales = "free_y")+
+  labs(y = "# Visitors Per Day",
+       x = "Site")+
+  theme_few()+
+  scale_fill_manual(values = c("#9055A2","goldenrod"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(size = 12, colour = "black",face="bold"),
+        legend.position = "none")
+
+
+buffer_plot2
+
+#PART 5C: Export as PDFs to "extra figures" folder to be combined in illustrator ####
+
+#Export as PDF
+pdf("output/extra_figures/buffers_plot.pdf", 
+    width = 7, height = 5)
+
+plot(buffer_plot)
+
+dev.off()
+
+#Export as PDF
+pdf("output/extra_figures/buffers_plot2.pdf", 
+    width = 7, height = 5)
+
+plot(buffer_plot2)
+
+dev.off()

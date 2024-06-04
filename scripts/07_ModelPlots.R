@@ -11,14 +11,17 @@
 
 #Import .csvs from "processed data" folder ------------------------------------
 
-urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv")
+urban_scavengers_summary <- read_csv("data/processed/urban_scavengers_summary.csv") 
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") %>%    
   #Create new column "scav_prob" which classifies scavenging as 1/0 for each carcass (partially scavenged carcasses are classified as scavenged = 1)
   mutate(scav_prob = if_else(no_scavenge == TRUE, 0, 1),
          #Create new column "full_scav_prob" which classifies scavenging as 1/0 for each carcass that was fully scavenged AKA carcass removal)
-         full_scav_prob = if_else(no_scavenge == FALSE & partial_scavenge == FALSE, 1, 0),
-         site_name = as.factor(site_name)) 
+         full_scav_prob = if_else(no_scavenge == FALSE & 
+                                  partial_scavenge == FALSE, 1, 0),
+         site_name = as.factor(site_name)) %>% 
+  #bring environmental variables for univariate plots into DF
+  left_join(., urban_scavengers_summary[,c("site_name", "percent_developed_1km",  "domestic_dog_visitors_per_day")], by = c("site_name"))
 
 
 ############################################################################
@@ -756,7 +759,8 @@ dev.off()
 
 #Create datafeame filtering out carcasses in which no scavenging occurred
 temporal_df <- carcass_level_summary %>% 
-  filter(hours_to_first_scavenging_event != "NA")
+  filter(hours_to_first_scavenging_event != "NA") %>% 
+  mutate(site_name = factor(site_name)) #remove unused levels from factor
 
 #Create model
 g3=glmmTMB(hours_to_first_scavenging_event~ 
@@ -824,7 +828,8 @@ dev.off()
 
 #Create datafeame filtering out carcasses in which either (1) no scavenging occurred or (2) carcass was only partially scavenged
 temporal_df2 <- carcass_level_summary %>% 
-  filter(hours_to_full_scavenge != "NA")
+  filter(hours_to_full_scavenge != "NA")%>% 
+  mutate(site_name = factor(site_name)) #remove unused levels from factor
 
 #Create model
 g4=glmmTMB(hours_to_full_scavenge~
@@ -882,5 +887,330 @@ pdf("output/extra_figures/hours_until_full_scavenge_plot.pdf",
     width = 8, height = 6)
 
 plot(temporal_scav_plot2)
+
+dev.off()
+
+
+##############################################################################
+# PART 5: Domestic Dog and Urbanization Effect on Carrion Processing Plot ####
+##############################################################################
+
+
+#Recreate model h1b from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
+h1b <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+                 percent_developed_1km +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1b) 
+
+
+#Create dataframe for generating a line and error bar representing model h1b
+h1b_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,5), 
+                    percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 26),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h1b_plot$scav_prob <- predict(h1b,
+                              newdata=h1b_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a logit link. 
+
+#predict mean values on link/logit scale
+h1b_plot$pred_scav_prob_link=predict(h1b,newdata=h1b_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h1b_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h1b,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h1b_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h1b_plot$pSE=plogis(h1b_plot$pred_scav_prob_link+h1b_plot$SE) 
+# predicted mean - 1 SE on response scale
+h1b_plot$mSE=plogis(h1b_plot$pred_scav_prob_link-h1b_plot$SE) 
+
+
+
+#Turn percent_developed_1km variables into factors for plotting
+h1b_plot <- h1b_plot %>% 
+  mutate(percent_developed_1km = factor(percent_developed_1km, levels = c(1, .75, .5, .25, 0)))
+
+carcass_level_summary_2 <- carcass_level_summary %>% 
+  mutate(percent_developed_1km = factor(percent_developed_1km, levels = c(1, .75, .5, .25, 0)))
+
+
+#Generate ggplot
+dog_urbanization_plot <- ggplot(carcass_level_summary_2, 
+               aes(x=domestic_dog_visitors_per_day, y=scav_prob))+ 
+  geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
+  geom_ribbon(data=h1b_plot,
+              aes(x=domestic_dog_visitors_per_day,
+                  ymin=mSE,ymax=pSE, fill = percent_developed_1km),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h1b_plot,aes(x=domestic_dog_visitors_per_day,
+                              y=scav_prob, 
+                              color = percent_developed_1km))+
+  theme_few()+
+  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nUrbanized\n(1km)")+
+  scale_color_manual(values = rev(wes_palette("Zissou1", 
+                                             n=5,
+                                          type = "discrete")), 
+                     name="Percent \nUrbanized \n(1km)",
+                     labels = c("100","75","50","25","0"))+
+  scale_fill_manual(values = rev(wes_palette("Zissou1", 
+                                         n=5,
+                                         type = "discrete")),
+                    name="Percent \nUrbanized \n(1km)",
+                    labels = c("100","75","50","25","0"))
+
+dog_urbanization_plot
+
+#Export high-quality figure of dog and urbanization plot
+
+pdf("output/extra_figures/dog_urbanization_glmm.pdf", 
+    width = 8, height = 4.5)
+
+plot(dog_urbanization_plot)
+
+dev.off()
+
+
+
+
+
+##############################################################################
+# PART 6: Domestic Dog and Diel Period Carrion Processing Plot ###############
+##############################################################################
+
+
+#Recreate model h1e from "04_Univariate_Analyses.R", analyzing the probability of carcass removal using using 1km buffer with a mixed-effects logistic regression (generalized linear mixed effects model with binomial distribution and logit link)
+
+h1e <- glmmTMB(scav_prob~ #scav_prob (1/0) binary probability of any scavenging activity
+                 deployment_type_AM_PM +
+                 domestic_dog_visitors_per_day +
+                 (1|site_name), #site as random effect
+               family = "binomial", #binomial distribution
+               data=carcass_level_summary);summary(h1e) 
+
+
+#Create dataframe for generating a line and error bar representing model h1e
+h1e_plot=data.frame(domestic_dog_visitors_per_day=rep(0:25,2), 
+                    deployment_type_AM_PM = rep(c("day", "night"), each = 26),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h1e_plot$scav_prob <- predict(h1e,
+                              newdata=h1e_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a logit link. 
+
+#predict mean values on link/logit scale
+h1e_plot$pred_scav_prob_link=predict(h1e,newdata=h1e_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h1e_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h1e,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h1e_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h1e_plot$pSE=plogis(h1e_plot$pred_scav_prob_link+h1e_plot$SE) 
+# predicted mean - 1 SE on response scale
+h1e_plot$mSE=plogis(h1e_plot$pred_scav_prob_link-h1e_plot$SE) 
+
+
+#Generate ggplot
+dog_period_plot <- ggplot(carcass_level_summary, 
+                          aes(x=domestic_dog_visitors_per_day, 
+                              y=scav_prob, 
+                              color = deployment_type_AM_PM))+ 
+  geom_jitter(size = 4, height = 0.03, alpha = .4, shape = 16)+
+  geom_ribbon(data=h1e_plot,
+              aes(x=domestic_dog_visitors_per_day,
+                  ymin=mSE,ymax=pSE, fill = deployment_type_AM_PM),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h1e_plot,aes(x=domestic_dog_visitors_per_day,
+                              y=scav_prob, 
+                              color = deployment_type_AM_PM))+
+  theme_few()+
+  labs(y = "Probability of Carcass Scavenging", 
+       x="Domestic Dog Visitation (# recordings/day)", 
+       color = "Deployment\nType",
+       fill = "Deployment\nType",)+
+  scale_color_manual(values = c("#FFB921","#003f7d"),
+                     labels = c("Day", "Night"))+
+  scale_fill_manual(values = c("#FFB921","#003f7d"),
+                    labels = c("Day", "Night"))
+
+dog_period_plot
+
+
+#Export high-quality figure of dog and diel period plot
+
+pdf("output/supp_figures/dog_period_glmm.pdf", 
+    width = 8, height = 4.5)
+
+plot(dog_period_plot)
+
+dev.off()
+
+
+##############################################################################
+# PART 7: Time of Day and Urbanization Effect on Carrion Processing Plot #####
+##############################################################################
+
+##############################################
+# PART 7A: Time to First Scavenging Event ####
+##############################################
+
+#Recreate model h3d from "04_Univariate_Analyses.R", analyzing the time to first stavenging event using using 1km urbanization buffer and deployment time (day/night) with a mixed-effects gamma regression 
+
+h3d <- glmmTMB(hours_to_first_scavenging_event~ 
+                 percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM+
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df);summary(h3d) #dataframe with no-scavenge carcasses removed
+
+
+
+#Create dataframe for generating a line and error bar representing model h3d
+h3d_plot=data.frame(percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 2),
+                    deployment_type_AM_PM = rep(c("day", "night"), 5),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h3d_plot$hours_to_first_scavenging_event <- predict(h3d,
+                              newdata=h3d_plot,
+                              type="response", 
+                              re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a log link. 
+
+#predict mean values on link/log scale
+h3d_plot$pred_scav_prob_link=predict(h3d,newdata=h3d_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h3d_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h3d,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h3d_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h3d_plot$pSE=exp(h3d_plot$pred_scav_prob_link+h3d_plot$SE) 
+# predicted mean - 1 SE on response scale
+h3d_plot$mSE=exp(h3d_plot$pred_scav_prob_link-h3d_plot$SE) 
+
+
+
+urbanization_period_plot1 <- ggplot(temporal_df, aes(x=percent_developed_1km, y=hours_to_first_scavenging_event, color = deployment_type_AM_PM))+ 
+  geom_point(alpha = .5, size=4, shape=16)+
+  geom_ribbon(data=h3d_plot,
+              aes(x=percent_developed_1km,
+                  ymin=mSE,ymax=pSE, fill = deployment_type_AM_PM),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h3d_plot,aes(x=percent_developed_1km,
+                             y=hours_to_first_scavenging_event,
+                             color =deployment_type_AM_PM))+
+  theme_few()+
+  labs(y = "Hours Until First Scavenging Event", 
+       x="Percent Urbanized (1km)",
+       color = "Deployment\nType",
+       fill = "Deployment\nType")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), 
+                     labels = c(0,25,50,75,100))+
+  scale_color_manual(values = c("#FFB921","#003f7d"),
+                     labels = c("Day", "Night"))+
+  scale_fill_manual(values = c("#FFB921","#003f7d"),
+                    labels = c("Day", "Night"))
+
+
+urbanization_period_plot1
+
+#Export high-quality figure of plot
+
+pdf("output/extra_figures/urbanization_period_glmm1.pdf", 
+    width = 8, height = 4.5)
+
+plot(urbanization_period_plot1)
+
+dev.off()
+
+
+##############################################
+# PART 7B: Time to Carcass Removal ###########
+##############################################
+
+
+#Recreate model h4d from "04_Univariate_Analyses.R", analyzing the time to carcass removal using using 1km urbanization buffer and deployment time (day/night) with a mixed-effects gamma regression 
+
+h4d <- glmmTMB(hours_to_full_scavenge~ 
+                 percent_developed_1km + #1km urbanization extent
+                 deployment_type_AM_PM+
+                 (1|site_name), #site as random effect
+               family=Gamma(link = "log"), #gamma distribution with log link
+               data=temporal_df2);summary(h4d) #dataframe with no-scavenge carcasses removed
+
+
+#Create dataframe for generating a line and error bar representing model h4d
+h4d_plot=data.frame(percent_developed_1km = rep(c(0,.25,.5,.75, 1), each = 2),
+                    deployment_type_AM_PM = rep(c("day", "night"), 5),
+                    site_name = "Blacks") #Choose random site (wont impact output)
+
+#predict probability of scavenging using the model
+h4d_plot$hours_to_full_scavenge <- predict(h4d,
+                                           newdata=h4d_plot,
+                                           type="response", 
+                                           re.form=NA)#added extra step for mixed effects models
+
+#Code for generating confidence intervals for GLMER model with a log link. 
+
+#predict mean values on link/log scale
+h4d_plot$pred_scav_prob_link=predict(h4d,newdata=h4d_plot,re.form=NA,type="link")
+#function for bootstrapping
+pf1 = function(fit) {   predict(fit, h4d_plot) } 
+#bootstrap to estimate uncertainty in predictions
+bb=bootMer(h4d,nsim=1000,FUN=pf1,seed=999) 
+#Calculate SEs from bootstrap samples on link scale
+h4d_plot$SE=apply(bb$t, 2, sd) 
+#predicted mean + 1 SE on response scale
+h4d_plot$pSE=exp(h4d_plot$pred_scav_prob_link+h4d_plot$SE) 
+# predicted mean - 1 SE on response scale
+h4d_plot$mSE=exp(h4d_plot$pred_scav_prob_link-h4d_plot$SE) 
+
+
+
+urbanization_period_plot2 <- ggplot(temporal_df2, aes(x=percent_developed_1km, y=hours_to_full_scavenge, color = deployment_type_AM_PM))+ 
+  geom_point(alpha = .5, size=4, shape=16)+
+  geom_ribbon(data=h4d_plot,
+              aes(x=percent_developed_1km,
+                  ymin=mSE,ymax=pSE, fill = deployment_type_AM_PM),
+              alpha=0.3,linetype=0)+
+  geom_line(data=h4d_plot,aes(x=percent_developed_1km,
+                              y=hours_to_full_scavenge,
+                              color =deployment_type_AM_PM))+
+  theme_few()+
+  labs(y = "Hours Until Carcass Removal", 
+       x="Percent Urbanized (1km)",
+       color = "Deployment\nType",
+       fill = "Deployment\nType")+
+  scale_x_continuous(breaks = c(0, 0.25, 0.50, 0.75, 1), 
+                     labels = c(0,25,50,75,100))+
+  scale_color_manual(values = c("#FFB921","#003f7d"),
+                     labels = c("Day", "Night"))+
+  scale_fill_manual(values = c("#FFB921","#003f7d"),
+                    labels = c("Day", "Night"))
+
+
+urbanization_period_plot2
+
+#Export high-quality figure of plot
+
+pdf("output/extra_figures/urbanization_period_glmm2.pdf", 
+    width = 8, height = 4.5)
+
+plot(urbanization_period_plot2)
 
 dev.off()
