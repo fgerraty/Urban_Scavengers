@@ -373,28 +373,30 @@ can be run independently.</p></li>
 extent of urbanization and agricultural cultivation within buffers of
 three radii (1km, 3km, 5km) of each site.</p></li>
 <li><p><strong>02_DataClean.R</strong> cleans and summarizes raw data
-files.</p></li>
+files. This script also generates the components that form Figure
+S1.</p></li>
 <li><p><strong>03_Multivariate_Analyses.R</strong> conducts all
 permutational analysis of variance (PERMANOVA) and multivariate
 generalized linear modelling (MvGLM) to investigate the best predictors
-of scavenging assemblages. This script also generates tables S2, S3, S4,
-S5, and S6 in the manuscript.</p></li>
+of scavenging assemblages. This script also generates tables S2-S11 in
+the manuscript.</p></li>
 <li><p><strong>04_Univariate_Analyses.R</strong> conducts all analyses
-related to the effects of urbanization on metrics of carrion scavenging
-ecosystem functions.</p></li>
+related to the effects of anthropogenic disturbances on metrics of
+carrion scavenging ecosystem functions. This script also generates
+tables S12-S15 in the manuscript.</p></li>
 </ul>
 <p>In addition, there are four scripts (light blue in outline) dedicated
 to generating plots for primary and supplemental figures:</p>
 <ul>
 <li><p><strong>05_Map.R</strong> generates the map of urbanization
 extent and study sites (Fig. 1)</p></li>
-<li><p><strong>06_NMDS.R</strong> generates a NMDS plot showing the
+<li><p><strong>06_NMDS_Plot.R</strong> generates a NMDS plot showing the
 best-fitting MvGLM model in ordination space (Fig. 4)</p></li>
 <li><p><strong>07_ModelPlots.R</strong> generates all plots of
 urbanization effects on scavenger species and ecosystem functions (Figs.
-5, 6, S1, S2)</p></li>
+5, 6, S2, S3, S4)</p></li>
 <li><p><strong>08_ActivityPlots.R</strong> generates plots depicting
-temporal dynamics of scavenging activity (Figs. 3, 7, S3) and the
+temporal dynamics of scavenging activity (Figs. 3, 7, S5) and the
 scavenger summary table (Table S1).</p></li>
 </ul>
 <div class="float">
@@ -551,7 +553,7 @@ Crops”).</p></li>
 </ul></li>
 <li><p><strong>urban_scavengers_summary.csv</strong> - primary
 community-level dataset containing all site-level data including
-predictors and scavenging assemblages (i.e. scavenger MaxN values).</p>
+predictors and scavenging assemblages (effort-adjusted MaxN values).</p>
 <p>Columns</p>
 <ul>
 <li><p>Site, Latitude, Longitude, percent_developed_1km,
@@ -574,9 +576,16 @@ site</p></li>
 removed by scavengers at site</p></li>
 <li><p>american_crow, domestic_dog, coyote, deer_mouse, common_raven,
 gray_fox, domestic_cat, rat, striped_skunk, racoon, western_gull,
-virginia_opossum - largest MaxN value for each scavenger species
+virginia_opossum - effort-adjusted MaxN value for each scavenger species
 documented at each site.</p></li>
 </ul></li>
+<li><p><strong>adjusted_urban_scavengers_summary.csv</strong> -
+secondary community-level dataset containing all site-level data
+including predictors and scavenging assemblages (alternative MaxN
+values). Columns the same as
+<strong>urban_scavengers_summary.csv</strong>. See manuscript for a
+description of effort-adjusted vs. alternative MaxN relative abundance
+measures.</p></li>
 <li><p><strong>carcass_level_summary.csv</strong> - primary
 carcass-level dataset containing all carcass-level data including
 carcass ID, metrics of scavenging ecosystem functions, and site-level
@@ -624,7 +633,7 @@ POSIXct list using the <em>lubridate</em> package.</p></li>
 <div id="folder-output-houses-the-following-folders-and-files" class="section level4">
 <h4>Folder “output” houses the following folders and files</h4>
 <ul>
-<li><p>Folder <strong>extra figures</strong> containing supporting
+<li><p>Folder <strong>extra_figures</strong> containing supporting
 figures not included in manuscript main text or supplemental
 information</p>
 <ul>
@@ -635,7 +644,7 @@ map (Fig. 1) for publication.</p></li>
 total_scavenge_probability_plot.pdf,
 hours_until_first_scavenge_plot.pdf, hours_until_full_scavenge_plot.pdf
 - outputs from <strong>07_ModelPlots.R</strong> script, combined in
-illustrator to make Fig. S2 for publication.</p></li>
+illustrator to make Fig. S3 for publication.</p></li>
 <li><p>detection_pie.pdf, removal_pie.pdf, waffle.pdf - outputs from
 <strong>08_ActivityPlots.R</strong> script, combined in illustrator to
 make Fig. 3 for publication.</p></li>
@@ -644,6 +653,13 @@ make Fig. 3 for publication.</p></li>
 Fig. 5 for publication.</p></li>
 <li><p>repository_outline.png - outline of repository (figure above in
 <strong>README.md</strong> file)</p></li>
+<li><p>dog_urbanization_glmm.pdf, urbanization_period_glmm1.pdf,
+urbanization_period_glmm2.pdf - output from
+<strong>07_ModelPlots.R</strong> script, modified in illustrator to make
+Fig. 6 for publication.</p></li>
+<li><p>buffers_plot.pdf, buffers_plot2.pdf - output from
+<strong>02_DataClean.R</strong> combined in illustrator to make Fig. S1
+for publication.</p></li>
 </ul></li>
 <li><p>Folder <strong>main_figures</strong> containing figures included
 in the main text of the manuscript. Minor edits have been made to some
@@ -653,22 +669,33 @@ figures using Illustrator.</p>
 <li>Fig. 2 - scavenger_panel.pdf</li>
 <li>Fig. 3 - scavenger_breakdown.pdf</li>
 <li>Fig. 4 - NMDS_plot.pdf</li>
-<li>Fig. 5 - urbanization_select_scavengers_glm.pdf</li>
-<li>Fig. 6 - activity_plot.pdf</li>
+<li>Fig. 5 - urbanization_select_scavengers_glm.png</li>
+<li>Fig. 6 - carrion_processing.png</li>
+<li>Fig. 7 - activity_plot.pdf</li>
 </ul></li>
 <li><p>Folder <strong>supp_figures</strong> containing tables and
 figures included in the supplemental information of the manuscript.</p>
 <ul>
+<li>Fig. S1 - buffers.png</li>
+<li>Fig. S2 - urbanization_all_scavengers_glm.pdf</li>
+<li>Fig. S3 - ecosystem_function.pdf</li>
+<li>Fig. S4 - dog_period_glmm.pdf</li>
+<li>Fig. S4 - activity_plot_all_scavengers.pdf</li>
 <li>Table S1 - scavenger_species_summary_table.png</li>
 <li>Table S2 - PERMANOVA_top_models_table.pdf</li>
 <li>Table S3 - PERMANOVA_top_predictors_table.pdf</li>
 <li>Table S4 - PERMANOVA_all_models_table.pdf</li>
 <li>Table S5 - MvGLM_summary_table.pdf</li>
 <li>Table S6 - MvGLM_all_models_table.pdf</li>
-<li>Fig. S1 - urbanization_all_scavengers_glm.pdf</li>
-<li>Fig. S2 - ecosystem_function.pdf</li>
-<li>Fig. S3 - activity_plot_all_scavengers.pdf</li>
-<li>Fig. S4 - buffers_plot.pdf</li>
+<li>Table S7 - adjusted_PERMANOVA_top_models_table.pdf</li>
+<li>Table S8 - adjusted_PERMANOVA_top_predictors_table.pdf</li>
+<li>Table S9 - adjusted_PERMANOVA_all_models_table.pdf</li>
+<li>Table S10 - adjusted_MvGLM_summary_table.pdf</li>
+<li>Table S11 - adjusted_MvGLM_all_models_table.pdf</li>
+<li>Table S12 - scavenging_probability_table.pdf</li>
+<li>Table S13 - removal_probability_table.pdf</li>
+<li>Table S14 - time_to_first_scavenging_table.pdf</li>
+<li>Table S15 - time_to_carcass_removal_table.pdf</li>
 </ul></li>
 </ul>
 <p><strong>Urban_Scavengers.Rproj</strong> - R project for running

@@ -12,11 +12,11 @@ There are five primary R scripts (turquoise in outline) required to run all cons
 
 -   **01_UrbanizationCalculation.R** calculates the extent of urbanization and agricultural cultivation within buffers of three radii (1km, 3km, 5km) of each site.
 
--   **02_DataClean.R** cleans and summarizes raw data files.
+-   **02_DataClean.R** cleans and summarizes raw data files. This script also generates the components that form Figure S1.
 
--   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages. This script also generates tables S2, S3, S4, S5, and S6 in the manuscript.
+-   **03_Multivariate_Analyses.R** conducts all permutational analysis of variance (PERMANOVA) and multivariate generalized linear modelling (MvGLM) to investigate the best predictors of scavenging assemblages. This script also generates tables S2-S11 in the manuscript.
 
--   **04_Univariate_Analyses.R** conducts all analyses related to the effects of urbanization on metrics of carrion scavenging ecosystem functions.
+-   **04_Univariate_Analyses.R** conducts all analyses related to the effects of anthropogenic disturbances on metrics of carrion scavenging ecosystem functions. This script also generates tables S12-S15 in the manuscript.
 
 In addition, there are four scripts (light blue in outline) dedicated to generating plots for primary and supplemental figures:
 
@@ -24,9 +24,9 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 -   **06_NMDS_Plot.R** generates a NMDS plot showing the best-fitting MvGLM model in ordination space (Fig. 4)
 
--   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S1, S2)
+-   **07_ModelPlots.R** generates all plots of urbanization effects on scavenger species and ecosystem functions (Figs. 5, 6, S2, S3, S4)
 
--   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 3, 7, S3) and the scavenger summary table (Table S1).
+-   **08_ActivityPlots.R** generates plots depicting temporal dynamics of scavenging activity (Figs. 3, 7, S5) and the scavenger summary table (Table S1).
 
 ![Outline of scripts and datasets associated with this manuscript](output/extra_figures/repository_outline.png)
 
@@ -212,7 +212,7 @@ Folder **"processed"** containing processed data files
 
 #### Folder "output" houses the following folders and files
 
--   Folder **extra figures** containing supporting figures not included in manuscript main text or supplemental information
+-   Folder **extra_figures** containing supporting figures not included in manuscript main text or supplemental information
 
     -   base_map.pdf, locator_map.pdf- outputs from **05_Map.R** script, combined in Illustrator to make final map (Fig. 1) for publication.
 
@@ -224,7 +224,9 @@ Folder **"processed"** containing processed data files
 
     -   repository_outline.png - outline of repository (figure above in **README.md** file)
 
-    -   **dog_urbanization_glmm.pdf**, **urbanization_period_glmm1.pdf**, **urbanization_period_glmm2.pdf**  - output from **07_ModelPlots.R** script, modified in illustrator to make Fig. 6 for publication.
+    -   dog_urbanization_glmm.pdf, urbanization_period_glmm1.pdf, urbanization_period_glmm2.pdf - output from **07_ModelPlots.R** script, modified in illustrator to make Fig. 6 for publication.
+
+    -   buffers_plot.pdf, buffers_plot2.pdf - output from **02_DataClean.R** combined in illustrator to make Fig. S1 for publication.
 
 -   Folder **main_figures** containing figures included in the main text of the manuscript. Minor edits have been made to some figures using Illustrator.
 
