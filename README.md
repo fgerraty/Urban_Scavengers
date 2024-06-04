@@ -2,7 +2,7 @@
 
 *FD Gerraty, A Gobei-Bacaylan, K Diel.* In Revision.
 
-We examined the influence of urbanization and other human disturbances on vertebrate scavenging assemblages and scavenging ecosystem functions on California beaches. Here, we provide an outline of our analyses and provide a description of the scripts and datasets associated with this repository.
+We examined the influence of anthropogenic disturbances on vertebrate scavenging assemblages and scavenging ecosystem functions on California beaches. Here, we provide an outline of our analyses and provide a description of the scripts and datasets associated with this repository.
 
 ------------------------------------------------------------------------
 
