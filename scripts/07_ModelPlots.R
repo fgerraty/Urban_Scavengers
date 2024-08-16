@@ -953,7 +953,7 @@ dog_urbanization_plot <- ggplot(carcass_level_summary_2,
                               y=scav_prob, 
                               color = percent_developed_1km))+
   theme_few()+
-  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (# recordings/day)", color = "Percent\nUrbanized\n(1km)")+
+  labs(y = "Probability of Carcass Scavenging", x="Domestic Dog Visitation (No. recordings/day)", color = "Percent\nUrbanized\n(1km)")+
   scale_color_manual(values = rev(wes_palette("Zissou1", 
                                              n=5,
                                           type = "discrete")), 

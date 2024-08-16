@@ -82,7 +82,7 @@ activity_plot_all_spp <- ggplot(data = activity_df,
   theme(aspect.ratio = 1)+
   scale_x_continuous(limits = c(-.0001, 24), breaks = 0:23)+
   labs(x = "", 
-       y = "# Recorded Scavenging Events")+
+       y = "No. Recorded Scavenging Events")+
   facetted_pos_scales(y=list(
                       species == "coyote" ~ scale_y_continuous(breaks = c(0, 1)),
                       species == "domestic_dog" ~ scale_y_continuous(breaks = c(0:2)),
@@ -133,7 +133,7 @@ activity_plot<- ggplot(data = filter(activity_df, species == "deer_mouse" | spec
               labeller = as_labeller(scavenger_labels))+
   scale_x_continuous(limits = c(-.0001, 24), breaks = 0:23)+
   labs(x = "", 
-       y = "# Recorded \nScavenging Events", 
+       y = "No. Recorded \nScavenging Events", 
        fill = "")+
   scale_fill_manual(values = scavenger_palette)+
   theme(legend.position ="none",
