@@ -1,6 +1,6 @@
 # Urbanization alters sandy beach scavenging assemblages and dogs suppress ecosystem function
 
-*FD Gerraty, A Gobei-Bacaylan, K Diel.* In Revision.
+FD Gerraty, A Gobei-Bacaylan, K Diel. (2024) Urbanization alters sandy beach scavenging asssemblages and dogs suppress ecosystem function. *Ecosphere*
 
 We examined the influence of anthropogenic disturbances on vertebrate scavenging assemblages and scavenging ecosystem functions on California beaches. Here, we provide an outline of our analyses and provide a description of the scripts and datasets associated with this repository.
 
@@ -34,9 +34,9 @@ In addition, there are four scripts (light blue in outline) dedicated to generat
 
 ### Directory Information
 
-#### Folder "data" houses the following folders and files
+#### Folder "[data](https://github.com/fgerraty/Urban_Scavengers/tree/main/data)" houses the following folders and files
 
-Folder **"raw"** containing all raw data files
+Folder **"[raw](https://github.com/fgerraty/Urban_Scavengers/tree/main/data/raw)"** containing all raw data files
 
 -   folder **nlcd_2019_land_cover_l48_20210604** containing [NLCD 2019](https://doi.org/10.5066/P9KZCM54) Land Cover Database files (.ige, .img, .rde, .rrd, .xml). [Here's a cheatsheet](https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description) to the land cover code descriptions. The files can be downloaded directly from the file download portal at [this link](https://www.sciencebase.gov/catalog/item/604a4fb1d34eb120311b0039), under the title "nlcd_2019_land_cover_l48_20210604". NOTE: Due to large file size, this must be downloaded independently from the website above and placed in a folder with the exact name above ("nlcd_2019_land_cover_l48_20210604") for scripts *01_UrbanizationCalculation.R* and *05_Map.R* to run.
 
@@ -142,9 +142,9 @@ Folder **"raw"** containing all raw data files
 
     -   Camera Failure? - boolean (TRUE/FALSE) for whether camera failure occurred. Camera failures removed from dataset in cleaning steps.
 
-Folder **"processed"** containing processed data files
+Folder **"[processed](https://github.com/fgerraty/Urban_Scavengers/tree/main/data/processed)"** containing processed data files
 
--   **buffers.csv** -dataset containing the values for land cover derived in script 01_UrbanizationCalculation.R
+-   **buffers.csv** - dataset containing the values for land cover derived in script 01_UrbanizationCalculation.R
 
     Columns
 
@@ -210,9 +210,9 @@ Folder **"processed"** containing processed data files
 
 -   **scavenger_recordings.csv -** all columns the same as the **Urban_Scavenger_Video_Scoring.csv**, except column date_time which includes the date and time together to be used as a POSIXct list using the *lubridate* package.
 
-#### Folder "output" houses the following folders and files
+#### Folder "[output](https://github.com/fgerraty/Urban_Scavengers/tree/main/output)" houses the following folders and files
 
--   Folder **extra_figures** containing supporting figures not included in manuscript main text or supplemental information
+-   Folder [**extra_figures**](https://github.com/fgerraty/Urban_Scavengers/tree/main/output/extra_figures) containing supporting figures not included in manuscript main text or supplemental information
 
     -   base_map.pdf, locator_map.pdf- outputs from **05_Map.R** script, combined in Illustrator to make final map (Fig. 1) for publication.
 
@@ -228,7 +228,7 @@ Folder **"processed"** containing processed data files
 
     -   buffers_plot.pdf, buffers_plot2.pdf - output from **02_DataClean.R** combined in illustrator to make Fig. S1 for publication.
 
--   Folder **main_figures** containing figures included in the main text of the manuscript. Minor edits have been made to some figures using Illustrator.
+-   Folder [**main_figures**](https://github.com/fgerraty/Urban_Scavengers/tree/main/output/main_figures) containing figures included in the main text of the manuscript. Minor edits have been made to some figures using Illustrator.
 
     -   Fig. 1 - map.pdf
     -   Fig. 2 - scavenger_panel.pdf
@@ -238,7 +238,7 @@ Folder **"processed"** containing processed data files
     -   Fig. 6 - carrion_processing.png
     -   Fig. 7 - activity_plot.pdf
 
--   Folder **supp_figures** containing tables and figures included in the supplemental information of the manuscript.
+-   Folder [**supp_figures**](https://github.com/fgerraty/Urban_Scavengers/tree/main/output/supp_figures) containing tables and figures included in the supplemental information of the manuscript.
 
     -   Fig. S1 - buffers.png
     -   Fig. S2 - urbanization_all_scavengers_glm.pdf
