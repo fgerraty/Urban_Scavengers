@@ -12,7 +12,7 @@
 deployments <- read_csv("data/raw/Urban_Scavenger_Carcass_Deployments.csv") %>% 
   clean_names()
 
-scav_data <- scav_data <- read_csv("data/processed/scavenger_recordings.csv",
+scav_data <- read_csv("data/processed/scavenger_recordings.csv",
                                    col_types = "nnctnnlllnnnnnnnnnnnnlllT")
 
 carcass_level_summary <- read_csv("data/processed/carcass_level_summary.csv") 
@@ -51,7 +51,7 @@ activity_df <- rbind(temp_df, activity_df)%>% #combine dataframes
   distinct() #remove duplicates
 
 
-# PART 2B: Plot Scavenger Activity for All Species (Figure S2) ------------------
+# PART 2B: Plot Scavenger Activity for All Species (Figure S5) ------------------
 
 #Set up polar coordinate system for plotting
 cp <- coord_polar(start=0)
