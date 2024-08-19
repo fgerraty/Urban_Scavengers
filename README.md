@@ -1,4 +1,5 @@
 # Urbanization alters sandy beach scavenging assemblages and dogs suppress ecosystem function
+[![DOI](https://zenodo.org/badge/694789520.svg)](https://zenodo.org/doi/10.5281/zenodo.13334338)
 
 FD Gerraty, A Gobei-Bacaylan, K Diel. (2024) Urbanization alters sandy beach scavenging asssemblages and dogs suppress ecosystem function. *Ecosphere*
 
@@ -244,7 +245,7 @@ Folder **"[processed](https://github.com/fgerraty/Urban_Scavengers/tree/main/dat
     -   Fig. S2 - urbanization_all_scavengers_glm.pdf
     -   Fig. S3 - ecosystem_function.pdf
     -   Fig. S4 - dog_period_glmm.pdf
-    -   Fig. S4 - activity_plot_all_scavengers.pdf
+    -   Fig. S5 - activity_plot_all_scavengers.pdf
     -   Table S1 - scavenger_species_summary_table.png
     -   Table S2 - PERMANOVA_top_models_table.pdf
     -   Table S3 - PERMANOVA_top_predictors_table.pdf
