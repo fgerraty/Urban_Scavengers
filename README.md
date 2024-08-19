@@ -1,6 +1,6 @@
 # Urbanization alters sandy beach scavenging assemblages and dogs suppress ecosystem function
 
-[![DOI](https://zenodo.org/badge/694789520.svg)](https://zenodo.org/doi/10.5281/zenodo.13334338)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13334339.svg)](https://doi.org/10.5281/zenodo.13334339)
 
 FD Gerraty, A Gobei-Bacaylan, K Diel. (2024) Urbanization alters sandy beach scavenging asssemblages and dogs suppress ecosystem function. *Ecosphere*
 
