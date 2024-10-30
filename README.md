@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13334339.svg)](https://doi.org/10.5281/zenodo.13334339)
 
-FD Gerraty, A Gobei-Bacaylan, K Diel. (2024) Urbanization alters sandy beach scavenging asssemblages and dogs suppress ecosystem function. *Ecosphere*
+FD Gerraty, A Gobei-Bacaylan, K Diel. (2024) Urbanization alters sandy beach scavenging asssemblages and dogs suppress ecosystem function. *Ecosphere* https://doi.org/10.1002/ecs2.70016
 
 We examined the influence of anthropogenic disturbances on vertebrate scavenging assemblages and scavenging ecosystem functions on California beaches. Here, we provide an outline of our analyses and provide a description of the scripts and datasets associated with this repository.
 
